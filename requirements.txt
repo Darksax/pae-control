@@ -1,0 +1,4 @@
+PyQt6>=6.5.0
+openpyxl>=3.1.0
+pyinstaller>=6.0.0
+# html.parser es nativo de Python — no requiere dependencia extra para leer .xls de SIGE

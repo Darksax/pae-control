@@ -1,0 +1,19 @@
+{
+  "_instrucciones": [
+    "1. Sube este archivo a la raíz del repo GitHub (rama main).",
+    "2. Cambia 'version' a la nueva versión cuando publiques un update.",
+    "3. En 'patches', lista SOLO los archivos que cambiaron.",
+    "4. Para cada archivo: sube el .py al repo y pon la URL raw de GitHub.",
+    "5. SHA256 es opcional pero recomendado (genera con: sha256sum archivo.py).",
+    "6. La app detecta el update al abrir y ofrece descargarlo.",
+    "7. El usuario reinicia la app para aplicar los cambios.",
+    "IMPORTANTE: este archivo no es parte del bundle — vive en el repo GitHub."
+  ],
+
+  "version": "1.0.0",
+  "date": "2026-06-09",
+  "notes": [
+    "Versión inicial"
+  ],
+  "patches": []
+}

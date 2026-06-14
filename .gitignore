@@ -1,0 +1,32 @@
+# Base de datos (contiene datos personales de estudiantes)
+*.db
+*.db-wal
+*.db-shm
+
+# Parches descargados (locales por equipo)
+patches/
+
+# Build artifacts
+build/
+dist/
+*.spec.bak
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# PyInstaller
+*.manifest
+*.spec~
+
+# Logs
+*.log

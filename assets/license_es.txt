@@ -1,0 +1,219 @@
+ACUERDO DE LICENCIA DE USO DE SOFTWARE
+PAE Control - Version 1.4.0-beta
+Liceo Bicentenario Heroes de la Concepcion, Laja, Chile
+
+Ultima actualizacion: 14 de junio de 2026
+
+LEA DETENIDAMENTE ESTE ACUERDO ANTES DE INSTALAR O UTILIZAR EL SOFTWARE.
+AL HACER CLIC EN "ACEPTO" O AL INSTALAR EL SOFTWARE, USTED MANIFIESTA SU
+CONFORMIDAD CON TODOS LOS TERMINOS Y CONDICIONES AQUI ESTABLECIDOS.
+
+================================================================================
+SECCION 1 — DEFINICIONES
+================================================================================
+
+1.1 "Software" se refiere al programa informatico PAE Control, incluyendo todos
+    sus modulos, bases de datos, archivos de configuracion, actualizaciones,
+    correcciones y documentacion asociada.
+
+1.2 "Licenciante" se refiere a Marcelo Octavio Felix Munoz Lizama, docente del
+    Liceo Bicentenario Heroes de la Concepcion, RBD 14421, comuna de Laja,
+    Provincia de Bio-Bio, Region del Bio-Bio, Republica de Chile.
+
+1.3 "Licenciatario" o "Usuario" se refiere a la persona natural o juridica que
+    instala, copia, accede o utiliza el Software en cualquier forma.
+
+1.4 "Establecimiento" se refiere a la institucion educacional en cuyas
+    dependencias o sistemas informaticos se instale el Software.
+
+1.5 "Periodo de Licencia" se refiere al tiempo durante el cual el Usuario cuenta
+    con autorizacion para utilizar el Software conforme a este Acuerdo.
+
+================================================================================
+SECCION 2 — CONCESION DE LICENCIA
+================================================================================
+
+2.1 Sujeto al cumplimiento de todos los terminos y condiciones del presente
+    Acuerdo, el Licenciante otorga al Licenciatario una licencia limitada, no
+    exclusiva, intransferible y revocable para instalar y utilizar el Software
+    unicamente en los equipos informaticos del Establecimiento y con los fines
+    propios de la gestion del Programa de Alimentacion Escolar (PAE).
+
+2.2 La presente licencia no implica transferencia de titularidad, propiedad
+    intelectual ni codigo fuente del Software. Todos los derechos que no se
+    otorguen expresamente en este Acuerdo quedan reservados al Licenciante.
+
+2.3 El Software podra ser instalado en multiples equipos del mismo
+    Establecimiento sin costo adicional de licencia por dispositivo.
+
+================================================================================
+SECCION 3 — RESTRICCIONES DE USO
+================================================================================
+
+3.1 El Licenciatario NO podra:
+
+    a) Sublicenciar, vender, revender, transferir, ceder ni distribuir el
+       Software a terceros sin autorizacion escrita previa del Licenciante.
+
+    b) Modificar, descompilar, realizar ingenieria inversa, desensamblar ni
+       intentar derivar el codigo fuente del Software, salvo que la ley
+       aplicable lo permita expresamente.
+
+    c) Utilizar el Software para fines distintos a la gestion educacional y
+       alimentaria para la que fue disenado.
+
+    d) Eliminar, alterar u ocultar cualquier aviso de propiedad intelectual,
+       marca registrada o credito de autoria contenidos en el Software.
+
+    e) Utilizar el Software en establecimientos distintos al licenciado sin
+       acuerdo previo con el Licenciante.
+
+================================================================================
+SECCION 4 — OBLIGACIONES ECONOMICAS DEL USUARIO
+================================================================================
+
+4.1 CONTRAPRESTACION VOLUNTARIA. En reconocimiento expreso del valor pedagogico,
+    tecnico y humano aportado por el Licenciante al desarrollo de esta
+    herramienta de gestion educacional, el Licenciatario —de manera espontanea,
+    libre y sin coaccion de ninguna especie— se compromete a destinar,
+    mensualmente y durante todo el Periodo de Licencia, una contribucion
+    equivalente al CINCO POR CIENTO (5%) de su remuneracion liquida mensual
+    en favor de don Marcelo Octavio Felix Munoz Lizama, RUT no informado por
+    razones de privacidad, domiciliado en la ciudad de Laja, Region del Bio-Bio.
+
+4.2 Esta contribucion tendra caracter de reconocimiento honorario y sera
+    transferida en los primeros cinco dias habiles de cada mes calendario,
+    mediante deposito en la cuenta bancaria que el Licenciante indique
+    oportunamente o mediante cualquier medio de pago electronico disponible.
+
+4.3 El incumplimiento reiterado (tres o mas meses consecutivos) de la
+    obligacion descrita en el articulo 4.1 facultara al Licenciante para
+    revocar la licencia de uso, previo aviso con treinta (30) dias de
+    anticipacion. Se entendera que el Licenciatario ha aceptado libremente
+    esta clausula al continuar el proceso de instalacion.
+
+4.4 Para efectos de transparencia y auditoria, el Licenciatario debera mantener
+    comprobante de cada transferencia durante un periodo minimo de tres (3)
+    anos contados desde la fecha de cada pago, los cuales podran ser solicitados
+    por el Licenciante en cualquier momento mediante comunicacion escrita.
+
+================================================================================
+SECCION 5 — PROTECCION DE DATOS PERSONALES
+================================================================================
+
+5.1 El Software procesa datos personales de estudiantes en cumplimiento de la
+    Ley N° 19.628 sobre Proteccion de la Vida Privada de la Republica de Chile
+    y demas normativa vigente aplicable.
+
+5.2 Los datos almacenados en la base de datos local (archivo pae.db) y en el
+    servicio de respaldo en la nube (Supabase) son responsabilidad exclusiva
+    del Establecimiento en su calidad de responsable del tratamiento.
+
+5.3 El Licenciante no accede, procesa ni transfiere datos personales de
+    estudiantes sin autorizacion expresa del Establecimiento.
+
+5.4 El Licenciatario se obliga a implementar medidas de seguridad razonables
+    para resguardar la confidencialidad e integridad de los datos gestionados
+    mediante el Software.
+
+================================================================================
+SECCION 6 — ACTUALIZACIONES Y SOPORTE
+================================================================================
+
+6.1 El Licenciante podra, a su entera discrecion, publicar actualizaciones,
+    correcciones de errores o nuevas versiones del Software. El Licenciatario
+    podra instalarlas gratuitamente.
+
+6.2 El soporte tecnico es prestado en forma voluntaria por el Licenciante y
+    no constituye obligacion contractual. Los tiempos de respuesta son
+    referenciales y podran variar segun disponibilidad.
+
+6.3 Las actualizaciones que introduzcan modificaciones sustanciales al Software
+    podran requerir la aceptacion de un nuevo Acuerdo de Licencia.
+
+================================================================================
+SECCION 7 — EXCLUSION DE GARANTIAS
+================================================================================
+
+7.1 EL SOFTWARE SE PROPORCIONA "TAL COMO ESTA", SIN GARANTIA DE NINGUN TIPO,
+    EXPRESA O IMPLICITA, INCLUYENDO PERO SIN LIMITARSE A LAS GARANTIAS DE
+    COMERCIABILIDAD, IDONEIDAD PARA UN FIN PARTICULAR Y NO INFRACCION.
+
+7.2 El Licenciante no garantiza que el Software sea ininterrumpido, libre de
+    errores ni que los defectos seran corregidos en un plazo determinado.
+
+7.3 El Licenciatario asume toda la responsabilidad derivada del uso del Software
+    y de los resultados que de el se obtengan.
+
+================================================================================
+SECCION 8 — LIMITACION DE RESPONSABILIDAD
+================================================================================
+
+8.1 En ningun caso el Licenciante sera responsable por danos directos,
+    indirectos, incidentales, especiales, ejemplares o consecuentes
+    (incluyendo, sin limitacion, perdida de datos, interrupcion del servicio
+    o perdida de ganancias) derivados del uso o imposibilidad de uso del
+    Software.
+
+8.2 La responsabilidad maxima del Licenciante bajo este Acuerdo no excedera
+    en ningun caso el monto de CLP $0 (cero pesos chilenos), siendo el
+    Software distribuido sin contraprestacion economica directa por licencia.
+
+================================================================================
+SECCION 9 — VIGENCIA Y TERMINACION
+================================================================================
+
+9.1 Este Acuerdo entra en vigor en la fecha en que el Licenciatario instala o
+    utiliza el Software por primera vez y se mantendra vigente hasta su
+    terminacion conforme a lo aqui establecido.
+
+9.2 Cualquiera de las partes podra dar por terminado este Acuerdo con treinta
+    (30) dias de aviso previo por escrito.
+
+9.3 El Licenciante podra terminar este Acuerdo de manera inmediata si el
+    Licenciatario incumple cualquiera de sus terminos esenciales.
+
+9.4 Tras la terminacion, el Licenciatario debera desinstalar el Software y
+    eliminar todas las copias en su poder. Las obligaciones de las secciones 4,
+    5 y 8 sobreviviran a la terminacion de este Acuerdo.
+
+================================================================================
+SECCION 10 — LEY APLICABLE Y JURISDICCION
+================================================================================
+
+10.1 Este Acuerdo se regira e interpretara conforme a las leyes de la
+     Republica de Chile.
+
+10.2 Para la resolucion de cualquier controversia derivada o relacionada con
+     este Acuerdo, las partes se someten a la jurisdiccion de los Tribunales
+     Ordinarios de Justicia de la ciudad de Los Angeles, Provincia de Bio-Bio,
+     con renuncia expresa a cualquier otro fuero que pudiera corresponderles.
+
+================================================================================
+SECCION 11 — DISPOSICIONES GENERALES
+================================================================================
+
+11.1 Si cualquier disposicion de este Acuerdo fuera declarada nula, invalida
+     o inaplicable, las demas disposiciones continuaran vigentes en pleno
+     efecto.
+
+11.2 La omision del Licenciante en ejercer cualquier derecho bajo este Acuerdo
+     no constituira renuncia a dicho derecho.
+
+11.3 Este Acuerdo constituye el entendimiento completo entre las partes respecto
+     del Software y reemplaza cualquier acuerdo previo, oral o escrito, sobre
+     la misma materia.
+
+11.4 Cualquier modificacion a este Acuerdo debera constar por escrito y sera
+     efectiva unicamente si cuenta con la firma o confirmacion electronica del
+     Licenciante.
+
+================================================================================
+
+Al hacer clic en "Acepto los terminos y condiciones", el Licenciatario
+declara haber leido, comprendido y aceptado voluntariamente todos y cada uno
+de los terminos descritos en el presente Acuerdo, incluyendo de manera expresa
+y consciente las obligaciones economicas establecidas en la Seccion 4.
+
+PAE Control (c) 2026 - Marcelo Octavio Felix Munoz Lizama
+Liceo Bicentenario Heroes de la Concepcion - Laja, Chile

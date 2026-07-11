@@ -1,0 +1,47 @@
+# Base de datos (contiene datos personales de estudiantes)
+*.db
+*.db-wal
+*.db-shm
+
+# Parches descargados (locales por equipo)
+patches/
+
+# Build artifacts
+build/
+dist/
+*.spec.bak
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Script de push (contiene token — solo para uso local)
+PUSH_TO_GITHUB.command
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# PyInstaller
+*.manifest
+*.spec~
+
+# Logs
+*.log
+logs/
+
+# Reportes de crash (pueden contener datos de estudiantes)
+bug_reports/
+
+# Exportaciones (contienen datos personales de estudiantes)
+exports/
+
+# Bases de datos de prueba (tests/)
+tests/pae_test.db*
+tests/pae_breakfast.db*
+tests/pae_defect_test.db*

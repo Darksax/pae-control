@@ -1,0 +1,88 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade PyQt6 PyQt6-WebEngine pyinstaller supabase openpyxl Pillow
+
+      - name: Generar icono si falta
+        shell: pwsh
+        run: |
+          if (!(Test-Path "assets\AppIcon.ico")) { python make_AppIcon_win.py }
+
+      - name: Compilar .exe con PyInstaller
+        run: python -m PyInstaller PAEControl_win.spec --clean --noconfirm
+
+      - name: Verificar .exe generado
+        shell: pwsh
+        run: |
+          if (!(Test-Path "dist\PAEControl.exe")) { throw "No se generó dist\PAEControl.exe" }
+
+      - name: Instalar Inno Setup
+        shell: pwsh
+        continue-on-error: true
+        run: choco install innosetup -y
+
+      - name: Compilar instalador (Inno Setup)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (Test-Path $iscc) {
+            & $iscc "PAEControl_Setup.iss"
+          } else {
+            Write-Host "Inno Setup no disponible — se omite el instalador, queda el .exe portable"
+          }
+
+      - name: Subir artefacto — .exe portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: PAEControl-exe
+          path: dist/PAEControl.exe
+          retention-days: 90
+
+      - name: Subir artefacto — instalador
+        if: hashFiles('dist_installer/*.exe') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: PAEControl-instalador
+          path: dist_installer/*.exe
+          retention-days: 90
+
+      - name: Publicar Release "latest"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "PAE Control — build más reciente"
+          body: |
+            Build automático generado desde el commit ${{ github.sha }} en `main`.
+
+            - `PAEControl.exe` → versión portable, se ejecuta directo sin instalar.
+            - `PAEControl_Setup_*.exe` (si está presente) → instalador con acceso directo
+              en Escritorio e Inicio.
+
+            Requiere Windows 10 (64-bit) 1809 o superior. No necesita Python instalado.
+          make_latest: true
+          fail_on_unmatched_files: false
+          files: |
+            dist/PAEControl.exe
+            dist_installer/*.exe

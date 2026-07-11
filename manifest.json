@@ -1,0 +1,41 @@
+{
+  "_instrucciones": [
+    "1. Sube este archivo a la raíz del repo GitHub (rama main).",
+    "2. Cambia 'version' a la nueva versión cuando publiques un update.",
+    "3. En 'patches', lista SOLO los archivos que cambiaron.",
+    "4. Para cada archivo: sube el .py al repo y pon la URL raw de GitHub.",
+    "5. SHA256 es opcional pero recomendado (genera con: sha256sum archivo.py).",
+    "6. La app detecta el update al abrir y ofrece descargarlo.",
+    "7. El usuario reinicia la app para aplicar los cambios.",
+    "IMPORTANTE: este archivo no es parte del bundle — vive en el repo GitHub."
+  ],
+
+  "version": "1.2.0",
+  "date": "2026-06-13",
+  "notes": [
+    "Módulo Inspectoría completo: atrasos, inasistencias, retiros, firma apoderado, licencias, notificaciones WhatsApp",
+    "Sistema de usuarios con PIN y control de acceso por rol (admin / pae / inspectoria)",
+    "Justificación automática de comidas al registrar pase",
+    "Reportes Inspectoría ampliados con filtros Hoy/Semana/Mes y top mensual ordenable",
+    "Exportación CSV de pases y ranking",
+    "Centro de notificaciones WhatsApp con envío batch y edición de teléfono inline"
+  ],
+  "patches": [
+    { "path": "db.py",                      "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/db.py" },
+    { "path": "patchnotes.py",              "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/patchnotes.py" },
+    { "path": "sync.py",                    "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/sync.py" },
+    { "path": "session.py",                 "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/session.py" },
+    { "path": "whatsapp.py",               "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/whatsapp.py" },
+    { "path": "ui/main_window.py",          "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/main_window.py" },
+    { "path": "ui/login_screen.py",         "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/login_screen.py" },
+    { "path": "ui/inspectoria_screen.py",   "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/inspectoria_screen.py" },
+    { "path": "ui/reports_screen.py",       "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/reports_screen.py" },
+    { "path": "ui/config_screen.py",        "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/config_screen.py" },
+    { "path": "ui/import_screen.py",        "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/import_screen.py" },
+    { "path": "ui/students_screen.py",      "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/students_screen.py" },
+    { "path": "ui/widgets.py",              "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/widgets.py" },
+    { "path": "ui/theme.py",               "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/theme.py" },
+    { "path": "ui/scan_screen.py",          "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/scan_screen.py" },
+    { "path": "ui/suspensions_screen.py",   "url": "https://raw.githubusercontent.com/Darksax/pae-control/main/ui/suspensions_screen.py" }
+  ]
+}

@@ -44,19 +44,20 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: |
-          # Tanto el ISCC.exe preinstalado en PATH (shim de Chocolatey) como
-          # una reinstalación forzada vía "choco install innosetup" resultan
-          # en una instalación parcial: falta wizmodernimage-is.bmp y
-          # probablemente el paquete de idioma español (ambos son assets
-          # compiler:... que el .iss necesita). El paquete choco de la
-          # comunidad no los incluye. Bajamos el instalador oficial de
-          # jrsoftware.org directo, que sí trae todos los archivos.
-          $installerPath = "$env:TEMP\innosetup-installer.exe"
-          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile $installerPath -UseBasicParsing
-          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/SP-" -Wait
-
-          $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
-                      Select-Object -First 1 -ExpandProperty FullName
+          # PAEControl_Setup.iss ya no depende de ningún asset bundleado
+          # (compiler:...) de la instalación de Inno Setup, así que basta
+          # con el ISCC.exe que venga preinstalado en el runner; si no está,
+          # se instala rápido vía choco.
+          $isccPath = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
+          if (-not $isccPath) {
+            $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
+                        Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (-not $isccPath) {
+            choco install innosetup -y --no-progress
+            $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
+                        Select-Object -First 1 -ExpandProperty FullName
+          }
 
           if ($isccPath) {
             Write-Host "Usando ISCC en: $isccPath"

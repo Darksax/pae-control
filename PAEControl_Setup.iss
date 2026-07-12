@@ -84,8 +84,8 @@ spanish.FinishedHeadingLabel=Instalación de [name] completada
 spanish.FinishedLabel=La instalación de [name] ha finalizado exitosamente.%n%nPuede iniciar la aplicación haciendo clic en el acceso directo creado en el escritorio o en el menú de Inicio.
 
 [Tasks]
-Name: "desktopicon"; Description: "Crear acceso directo en el &Escritorio"; GroupDescription: "Accesos directos adicionales:"; Flags: checked
-Name: "quicklaunchicon"; Description: "Agregar al menú de &Inicio"; GroupDescription: "Accesos directos adicionales:"; Flags: checked
+Name: "desktopicon"; Description: "Crear acceso directo en el &Escritorio"; GroupDescription: "Accesos directos adicionales:"
+Name: "quicklaunchicon"; Description: "Agregar al menú de &Inicio"; GroupDescription: "Accesos directos adicionales:"
 
 [Files]
 ; Ejecutable principal (compilado por PyInstaller)

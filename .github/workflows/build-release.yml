@@ -66,13 +66,27 @@ jobs:
             Write-Host "Inno Setup no disponible — se omite el instalador, queda el .exe portable"
           }
 
+      - name: Preparar artefacto Windows
+        shell: pwsh
+        run: |
+          # dist/ y dist_installer/ son árboles de directorios distintos —
+          # si se suben ambos paths tal cual, upload-artifact calcula el
+          # ancestro común (la raíz del repo) y preserva esa estructura
+          # anidada dentro del artefacto, así que el glob plano
+          # "release-files/*" del job de publish no los encuentra. Se
+          # copian ambos a un directorio único para que el artefacto
+          # quede siempre plano.
+          New-Item -ItemType Directory -Force -Path release_staging | Out-Null
+          Copy-Item "dist\PAEControl.exe" "release_staging\" -ErrorAction SilentlyContinue
+          if (Test-Path "dist_installer") {
+            Copy-Item "dist_installer\*.exe" "release_staging\" -ErrorAction SilentlyContinue
+          }
+
       - name: Subir artefacto Windows
         uses: actions/upload-artifact@v4
         with:
           name: PAEControl-windows
-          path: |
-            dist/PAEControl.exe
-            dist_installer/*.exe
+          path: release_staging/*
           retention-days: 90
           if-no-files-found: warn
 

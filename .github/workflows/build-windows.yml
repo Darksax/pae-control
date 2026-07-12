@@ -37,18 +37,31 @@ jobs:
         run: |
           if (!(Test-Path "dist\PAEControl.exe")) { throw "No se generó dist\PAEControl.exe" }
 
-      - name: Instalar Inno Setup
-        shell: pwsh
-        continue-on-error: true
-        run: choco install innosetup -y
-
       - name: Compilar instalador (Inno Setup)
         shell: pwsh
         continue-on-error: true
         run: |
-          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-          if (Test-Path $iscc) {
-            & $iscc "PAEControl_Setup.iss"
+          # windows-latest ya trae Inno Setup preinstalado, pero la ruta exacta
+          # puede variar entre versiones de la imagen — buscamos en varios lugares
+          # en vez de asumir una ruta fija.
+          $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          if ($iscc) {
+            $isccPath = $iscc.Source
+          } else {
+            $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
+                        Select-Object -First 1 -ExpandProperty FullName
+          }
+
+          if (-not $isccPath) {
+            Write-Host "Inno Setup no encontrado en el runner — intentando instalar con choco..."
+            choco install innosetup -y --force
+            $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
+                        Select-Object -First 1 -ExpandProperty FullName
+          }
+
+          if ($isccPath) {
+            Write-Host "Usando ISCC en: $isccPath"
+            & $isccPath "PAEControl_Setup.iss"
           } else {
             Write-Host "Inno Setup no disponible — se omite el instalador, queda el .exe portable"
           }

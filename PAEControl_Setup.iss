@@ -64,9 +64,6 @@ ShowLanguageDialog=no
 ; --- Licencia ---
 LicenseFile={#LicenseFile}
 
-; --- UAC ---
-UACSolidColorBlock=no
-
 ; --- Uninstall ---
 UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName} {#AppVersion}

@@ -41,22 +41,18 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: |
-          # windows-latest ya trae Inno Setup preinstalado, pero la ruta exacta
-          # puede variar entre versiones de la imagen — buscamos en varios lugares
-          # en vez de asumir una ruta fija.
-          $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
-          if ($iscc) {
-            $isccPath = $iscc.Source
-          } else {
-            $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
-                        Select-Object -First 1 -ExpandProperty FullName
-          }
+          # windows-latest trae un ISCC.exe preinstalado en PATH (shim de
+          # Chocolatey), pero apunta a una instalación parcial sin los .bmp
+          # del wizard ni el paquete de idioma español. Forzamos una
+          # reinstalación completa vía choco y usamos SIEMPRE la ruta real
+          # en Program Files (nunca el shim de PATH), que sí trae todos
+          # los assets bundleados que el .iss necesita (compiler:...).
+          choco install innosetup -y --force --no-progress
 
+          $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
+                      Select-Object -First 1 -ExpandProperty FullName
           if (-not $isccPath) {
-            Write-Host "Inno Setup no encontrado en el runner — intentando instalar con choco..."
-            choco install innosetup -y --force
-            $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
-                        Select-Object -First 1 -ExpandProperty FullName
+            $isccPath = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
           }
 
           if ($isccPath) {

@@ -78,7 +78,30 @@ echo ""
 echo "OK  Compilación exitosa"
 echo ""
 
-# ── 6. Verificación de install names de Qt (diagnóstico) ──────────────────
+# ── 6. Fix install names de Qt (crash CFBundleCopyBundleURL) ──────────────
+# PyInstaller copia cada librería Qt DOS veces: una copia plana en
+# Frameworks/QtCore (sin estructura de framework) y la copia original con
+# estructura correcta en Frameworks/PyQt6/Qt6/lib/QtCore.framework/Versions/A/QtCore
+# (con Info.plist, CFBundleIdentifier, etc.). @rpath/QtCore resuelve contra
+# la copia plana, y Qt necesita CFBundleGetBundleWithIdentifier para
+# ubicarse a sí mismo al iniciar (warmUpLocationServices) — con la copia
+# plana esa búsqueda devuelve NULL y crashea (EXC_BAD_ACCESS 0x8) apenas se
+# abre la app, incluso con Qt 6.9.1 pinneado. Confirmado reproduciendo el
+# crash y arreglándolo directamente en macOS 26.2.
+echo "Corrigiendo install names de Qt (symlinks a framework real)..."
+( cd "dist/PAE Control.app/Contents/Frameworks"
+  for lib in QtCore QtGui QtWidgets QtNetwork QtSvg QtPdf QtDBus; do
+    real="PyQt6/Qt6/lib/${lib}.framework/Versions/A/${lib}"
+    if [ -f "$real" ] && [ -f "$lib" ] && [ ! -L "$lib" ]; then
+      rm "$lib"
+      ln -s "$real" "$lib"
+      echo "  OK  symlink $lib -> $real"
+    fi
+  done
+)
+echo ""
+
+# ── 6b. Verificación de install names de Qt (diagnóstico) ─────────────────
 # Muestra cómo quedó referenciado QtCore. Formato framework
 # (@rpath/QtCore.framework/Versions/A/QtCore) = correcto.
 # Formato plano (@rpath/QtCore) = solo seguro con Qt <= 6.9.x.

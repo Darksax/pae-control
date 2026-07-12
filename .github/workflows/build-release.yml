@@ -126,6 +126,32 @@ jobs:
             echo "No se generó dist/PAE Control.app"; exit 1
           fi
 
+      - name: Corregir install names de Qt (fix crash CFBundleCopyBundleURL)
+        run: |
+          # PyInstaller copia cada librería Qt DOS veces: una copia plana en
+          # Frameworks/QtCore (sin estructura de framework) y la copia
+          # original con estructura correcta en
+          # Frameworks/PyQt6/Qt6/lib/QtCore.framework/Versions/A/QtCore
+          # (con su Info.plist, CFBundleIdentifier, etc.). El rpath de
+          # QtCore.abi3.so resuelve @rpath/QtCore contra la copia plana,
+          # así que en macOS Qt intenta ubicar su propio bundle vía
+          # CFBundleGetBundleWithIdentifier("org.qt-project.QtCore") al
+          # inicializar (warmUpLocationServices), y como la copia plana no
+          # es un bundle real, CFBundleCopyBundleURL devuelve NULL y
+          # crashea (EXC_BAD_ACCESS en 0x8) apenas se abre la app.
+          # Fix: reemplazar cada copia plana por un symlink a la copia con
+          # estructura real de framework, para que dyld cargue el binario
+          # desde una ruta que CFBundle sí reconoce como bundle válido.
+          cd "dist/PAE Control.app/Contents/Frameworks"
+          for lib in QtCore QtGui QtWidgets QtNetwork QtSvg QtPdf QtDBus; do
+            real="PyQt6/Qt6/lib/${lib}.framework/Versions/A/${lib}"
+            if [ -f "$real" ] && [ -f "$lib" ] && [ ! -L "$lib" ]; then
+              rm "$lib"
+              ln -s "$real" "$lib"
+              echo "OK  symlink $lib -> $real"
+            fi
+          done
+
       - name: Firmar app (ad-hoc)
         run: codesign --force --deep --sign - "dist/PAE Control.app" || echo "WARN codesign falló"
 

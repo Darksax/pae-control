@@ -69,12 +69,13 @@ UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName} {#AppVersion}
 CreateUninstallRegKey=yes
 
-; --- Splash / color de fondo del wizard ---
-WizardImageFile=compiler:WizModernImage-IS.bmp
-WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
-
 [Languages]
-Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+; Vendoreado en assets/Spanish.isl en vez de compiler:Languages\Spanish.isl —
+; esa ruta depende de assets que no siempre vienen incluidos en la instalación
+; de Inno Setup del runner de CI (choco y hasta el instalador oficial en modo
+; silencioso fallaron en encontrarlos), así que se referencia un archivo del
+; propio repo que siempre existe.
+Name: "spanish"; MessagesFile: "assets\Spanish.isl"
 
 [CustomMessages]
 spanish.WelcomeLabel1=Bienvenido al asistente de instalación de [name]

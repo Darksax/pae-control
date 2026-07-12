@@ -44,19 +44,19 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: |
-          # windows-latest trae un ISCC.exe preinstalado en PATH (shim de
-          # Chocolatey), pero apunta a una instalación parcial sin los .bmp
-          # del wizard ni el paquete de idioma español. Forzamos una
-          # reinstalación completa vía choco y usamos SIEMPRE la ruta real
-          # en Program Files (nunca el shim de PATH), que sí trae todos
-          # los assets bundleados que el .iss necesita (compiler:...).
-          choco install innosetup -y --force --no-progress
+          # Tanto el ISCC.exe preinstalado en PATH (shim de Chocolatey) como
+          # una reinstalación forzada vía "choco install innosetup" resultan
+          # en una instalación parcial: falta wizmodernimage-is.bmp y
+          # probablemente el paquete de idioma español (ambos son assets
+          # compiler:... que el .iss necesita). El paquete choco de la
+          # comunidad no los incluye. Bajamos el instalador oficial de
+          # jrsoftware.org directo, que sí trae todos los archivos.
+          $installerPath = "$env:TEMP\innosetup-installer.exe"
+          Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/is.exe" -OutFile $installerPath -UseBasicParsing
+          Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/SP-" -Wait
 
           $isccPath = Get-ChildItem -Path "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
                       Select-Object -First 1 -ExpandProperty FullName
-          if (-not $isccPath) {
-            $isccPath = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
-          }
 
           if ($isccPath) {
             Write-Host "Usando ISCC en: $isccPath"

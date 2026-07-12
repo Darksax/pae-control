@@ -6,16 +6,21 @@ Registra el ingreso de cada estudiante escaneando su cédula de identidad, contr
 
 ---
 
-## Descarga (Windows)
+## Descarga (Windows y macOS)
 
-Cada push a `main` compila automáticamente una versión nueva vía GitHub Actions. Descárgala desde:
+Cada push a `main` compila automáticamente una versión nueva para ambas plataformas vía GitHub Actions. El link siempre apunta a la última build — no cambia entre versiones:
 
 **➜ [github.com/Darksax/pae-control/releases/latest](https://github.com/Darksax/pae-control/releases/latest)**
 
+**Windows** (10 de 64-bit, 1809 o superior):
 - `PAEControl.exe` — versión portable, se ejecuta directo sin instalar.
-- `PAEControl_Setup_*.exe` — instalador con acceso directo en Escritorio e Inicio (si está disponible en esa build).
+- `PAEControl_Setup_*.exe` — instalador con acceso directo en Escritorio e Inicio.
 
-Requisitos: Windows 10 (64-bit) 1809 o superior. No necesita Python instalado.
+**macOS**:
+- `PAEControl_mac.dmg` — arrastra a Aplicaciones.
+- `PAEControl_mac.zip` — alternativa si el `.dmg` no está disponible en esa build.
+
+Ninguna requiere Python instalado.
 
 ---
 

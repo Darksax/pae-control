@@ -161,9 +161,17 @@ jobs:
       - name: Crear .dmg
         continue-on-error: true
         run: |
+          # cp -r (sin -P) en macOS SIGUE symlinks y los reemplaza por
+          # copias reales — deshace el fix de "Corregir install names de
+          # Qt" de arriba (que reemplaza las copias planas de Qt por
+          # symlinks a la copia con estructura de framework correcta).
+          # Con -P se preservan los symlinks tal cual, que es lo que
+          # necesita el .dmg para no reintroducir el crash de arranque.
+          # Confirmado: hdiutil create sí preserva symlinks correctamente,
+          # cp -r es el único paso que los rompía.
           DMG_DIR="dist/dmg_tmp"
           rm -rf "$DMG_DIR"; mkdir -p "$DMG_DIR"
-          cp -r "dist/PAE Control.app" "$DMG_DIR/"
+          cp -rP "dist/PAE Control.app" "$DMG_DIR/"
           ln -s /Applications "$DMG_DIR/Applications"
           hdiutil create -volname "PAE Control" -srcfolder "$DMG_DIR" \
             -ov -format UDZO -o "dist/PAEControl_mac.dmg"

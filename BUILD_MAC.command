@@ -129,10 +129,13 @@ DMG_NAME="PAEControl_v1.0_mac.dmg"
 echo "Creando $DMG_NAME..."
 
 # Crear carpeta temporal para el DMG
+# cp -rP (no -r solo) preserva los symlinks de Qt del paso 6 tal cual —
+# cp -r sin -P los sigue y los reemplaza por copias reales, deshaciendo
+# el fix y reintroduciendo el crash de arranque (CFBundleCopyBundleURL).
 DMG_DIR="dist/dmg_tmp"
 rm -rf "$DMG_DIR"
 mkdir -p "$DMG_DIR"
-cp -r "dist/PAE Control.app" "$DMG_DIR/"
+cp -rP "dist/PAE Control.app" "$DMG_DIR/"
 ln -s /Applications "$DMG_DIR/Applications"
 
 hdiutil create \

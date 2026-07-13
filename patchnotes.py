@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.4"
+VERSION       = "1.5.5"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,15 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.5",
+        "date":    "2026-07-13",
+        "title":   "Corrección: la pantalla de Escaneo a veces desaparecía al cambiar de pantalla",
+        "notes": [
+            "La transición animada entre pantallas dejaba puesto (a opacidad 1) el efecto de fundido sobre la pantalla de destino después de terminar — en Escaneo, que tiene varios efectos propios (flash de resultado, sombras de tarjetas), ese efecto anidado a veces hacía que Qt renderizara la pantalla en blanco hasta el siguiente repintado grande",
+            "Ahora el efecto de fundido se saca apenas termina la animación, dejando el render normal el resto del tiempo",
+        ],
+    },
     {
         "version": "1.5.4",
         "date":    "2026-07-13",

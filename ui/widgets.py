@@ -180,15 +180,32 @@ class AnimatedStack(QStackedWidget):
 
         # Fade out current
         from ui.theme import fade_out, fade_in
-        self._out = fade_out(current, duration=140, on_done=lambda: self._switch(index, next_w))
+        self._out = fade_out(current, duration=140, on_done=lambda: self._switch(index, next_w, current))
         self._out.start()
 
-    def _switch(self, index: int, next_w: QWidget):
+    def _switch(self, index: int, next_w: QWidget, prev_w: QWidget):
         self.setCurrentIndex(index)
+        # El QGraphicsOpacityEffect que deja fade_out en prev_w se limpia acá
+        # mismo — sin esto queda pegado en la pantalla (con opacidad 0, ya
+        # oculta, no se nota) hasta la próxima vez que se le haga fade_in.
+        prev_w.setGraphicsEffect(None)
+
         from ui.theme import fade_in
         self._in = fade_in(next_w, duration=180)
-        self._in.finished.connect(lambda: setattr(self, '_animating', False))
+        self._in.finished.connect(lambda: self._finish_in(next_w))
         self._in.start()
+
+    def _finish_in(self, next_w: QWidget):
+        self._animating = False
+        # Pantallas como Escaneo tienen varios widgets hijos con su propio
+        # QGraphicsEffect (flash de resultado, sombras de tarjetas). Si el
+        # QGraphicsOpacityEffect de la transición queda puesto sobre next_w
+        # después de terminar, cada repintado de esos hijos pasa por un
+        # compositing anidado que Qt a veces renderiza mal — la pantalla
+        # completa aparece en blanco/vacía hasta el próximo repaint grande.
+        # Sacarlo apenas termina la animación deja el render normal (sin
+        # composición anidada) el resto del tiempo que la pantalla está activa.
+        next_w.setGraphicsEffect(None)
 
 
 # ═══════════════════════════════════════════════

@@ -40,6 +40,18 @@ jobs:
         run: |
           if (!(Test-Path "dist\MiAppoderado.exe")) { throw "No se generó dist\MiAppoderado.exe" }
 
+      - name: Sincronizar versión del instalador con patchnotes.py
+        shell: pwsh
+        run: |
+          # El .iss tiene su propio #define AppVersion hardcodeado (Inno
+          # Setup no puede importar Python) — se pisa acá con la versión
+          # real para que no se desincronice si alguien olvida actualizarlo
+          # a mano (ya pasó una vez).
+          $version = python -c "from patchnotes import VERSION; print(VERSION)"
+          (Get-Content "MiAppoderado_Setup.iss") -replace '#define AppVersion\s+"[^"]+"', "#define AppVersion `"$version`"" |
+            Set-Content "MiAppoderado_Setup.iss"
+          Write-Host "Version del instalador sincronizada a $version"
+
       - name: Compilar instalador (Inno Setup)
         shell: pwsh
         continue-on-error: true

@@ -8,7 +8,7 @@ Para publicar un update:
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.0"
+VERSION       = "1.5.1"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,16 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.1",
+        "date":    "2026-07-13",
+        "title":   "Fecha de inicio de servicio, suspensión múltiple, cupo editable en Cupos",
+        "notes": [
+            "Fecha de inicio del servicio (Cupos por día): no se generan strikes por días anteriores a esta fecha — evita castigar escaneos de prueba u operación irregular antes del arranque oficial",
+            "Suspender varios días de una vez: rango desde/hasta + motivo, en vez de marcar día por día",
+            "Cupos totales (permanente) ahora editable directo desde Cupos por día — la persona a cargo de PAE ya no necesita acceso a Configuración (admin) para ajustarlo",
+        ],
+    },
     {
         "version": "1.5.0",
         "date":    "2026-07-13",

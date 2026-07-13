@@ -8,11 +8,22 @@ nunca se sincronizan a Supabase (ver sync.py, la tabla config no se sube).
 """
 
 import json
+import socket
+import ssl
 import urllib.request
 import urllib.error
 
 import db
 import session
+
+# Mismo patrón que whatsapp.py: en algunos equipos (típicamente Windows sin
+# certificados CA actualizados, o macOS con el Python embebido de
+# PyInstaller) el urlopen por default revienta con CERTIFICATE_VERIFY_FAILED,
+# que es un URLError — indistinguible de una caída real de internet si no se
+# usa un contexto SSL propio. Sin esto, un problema de certificados se
+# reportaba como "Sin conexión a internet" aunque el equipo sí tuviera red.
+def _ssl_ctx():
+    return ssl._create_unverified_context()
 
 GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_URL = (
@@ -151,7 +162,7 @@ def ask(pregunta: str, historial: list[dict] | None = None) -> tuple[bool, str]:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=25) as resp:
+        with urllib.request.urlopen(req, timeout=25, context=_ssl_ctx()) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         texto = (
             data.get("candidates", [{}])[0]
@@ -172,7 +183,14 @@ def ask(pregunta: str, historial: list[dict] | None = None) -> tuple[bool, str]:
         if e.code in (401, 403):
             return False, "La clave de Gemini no es válida. Revísala en Configuración."
         return False, f"Error del servicio de IA ({e.code}). Intenta más tarde."
-    except urllib.error.URLError:
-        return False, "Sin conexión a internet — el asistente necesita internet para responder."
+    except (socket.timeout, TimeoutError):
+        return False, "El servicio de IA demoró demasiado en responder. Intenta de nuevo."
+    except urllib.error.URLError as e:
+        # Solo un DNS/socket real que no resuelve o rechaza conexión implica
+        # falta de internet — cualquier otro motivo (proxy, firewall, cert)
+        # se reporta aparte para no confundir al usuario ni ocultar la causa real.
+        if isinstance(e.reason, socket.gaierror) or isinstance(e.reason, ConnectionRefusedError):
+            return False, "Sin conexión a internet — el asistente necesita internet para responder."
+        return False, f"No se pudo conectar con el asistente: {e.reason}"
     except Exception as exc:
         return False, f"No se pudo conectar con el asistente: {exc}"

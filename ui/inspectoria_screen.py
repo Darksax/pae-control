@@ -83,7 +83,6 @@ class _NameSearch(QFrame):
         self._field.setStyleSheet(
             f"background: transparent; border: none; font-size: 14px; color: {C.TEXT};"
         )
-        self._field.installEventFilter(self)
         lay.addWidget(self._field, stretch=1)
 
         # Popup flotante — Tool+FramelessHint evita que robe el foco (vs Popup que sí lo roba)
@@ -110,7 +109,12 @@ class _NameSearch(QFrame):
         """)
         self._popup.hide()
         self._popup.itemClicked.connect(self._on_item_clicked)
-        # Instalar event filter en popup y campo
+        # Instalar event filter en popup y campo — DESPUÉS de crear self._popup:
+        # instalarlo antes (p.ej. junto con self._field más arriba) deja una
+        # ventana donde un evento de layout llega a eventFilter() mientras
+        # self._popup todavía no existe, y la línea 133 revienta con
+        # AttributeError en cada evento sintético del armado del layout.
+        self._field.installEventFilter(self)
         self._popup.installEventFilter(self)
 
         self._debounce = QTimer(self)

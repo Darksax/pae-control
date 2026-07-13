@@ -8,7 +8,7 @@ Para publicar un update:
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.1"
+VERSION       = "1.5.2"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,17 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.2",
+        "date":    "2026-07-13",
+        "title":   "Corrección: íconos vacíos y falso aviso de sin conexión en el Agente IA",
+        "notes": [
+            "Íconos vacíos en el build compilado: icons.py no resolvía la carpeta assets/icons dentro del .exe/.app (usaba una ruta relativa a __file__ que no existe en el ejecutable empaquetado) — ahora usa el mismo mecanismo de sys._MEIPASS que el resto de la app",
+            "Ícono faltante o corrupto ya no rompe la pantalla que lo pide: se muestra vacío en vez de crashear",
+            "Agente IA (Liceín): ya no muestra 'Sin conexión a internet' ante fallas de certificado SSL — solo se reporta así cuando de verdad no hay red; otros errores de conexión ahora muestran su causa real",
+            "Corrección de un AttributeError repetido en Inspectoría al abrir la app: el buscador por nombre instalaba su filtro de eventos antes de terminar de crear su propio popup",
+        ],
+    },
     {
         "version": "1.5.1",
         "date":    "2026-07-13",

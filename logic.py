@@ -195,6 +195,13 @@ def detectar_ausencias_previas(run: str, comida_actual_id: int,
 
     # Si es la primera comida del día, revisar ayer
     if idx_actual == 0:
+        # No penalizar por días anteriores a la fecha de inicio declarada del
+        # servicio (Cupos por día → "Fecha de inicio") — evita strikes por
+        # escaneos de prueba u operación irregular antes del arranque oficial.
+        fecha_inicio_servicio = db.get_config("servicio_fecha_inicio", "")
+        if fecha_inicio_servicio and ayer < fecha_inicio_servicio:
+            return faltadas
+
         # Si el día de ayer no tuvo NINGÚN registro → PAE no operó → sin strike
         total_registros_ayer = sum(
             db.count_registros_comida(ayer, cid) for cid in ids_comidas

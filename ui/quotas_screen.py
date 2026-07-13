@@ -10,12 +10,12 @@ Permite:
 Sin QMessageBox: todo feedback via SavedIndicator.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QTableWidget, QTableWidgetItem, QHeaderView,
     QFrame, QAbstractItemView, QCalendarWidget,
-    QSpinBox, QCheckBox, QLineEdit, QSizePolicy
+    QSpinBox, QCheckBox, QLineEdit, QSizePolicy, QDateEdit
 )
 from PyQt6.QtCore import Qt, QDate, QTimer
 from PyQt6.QtGui import QColor, QTextCharFormat, QFont
@@ -23,7 +23,7 @@ from PyQt6.QtGui import QColor, QTextCharFormat, QFont
 import db
 import utils
 from ui.theme   import C, sound
-from ui.widgets import AButton, HDivider, SectionHeader, SavedIndicator
+from ui.widgets import AButton, HDivider, VDivider, SectionHeader, SavedIndicator
 
 
 class QuotasScreen(QWidget):
@@ -58,15 +58,77 @@ class QuotasScreen(QWidget):
         )
         root.addWidget(sub)
 
-        # ── Default cupo chip ─────────────────────────
-        default_row = QHBoxLayout()
+        # ── Config permanente: cupos totales + fecha de inicio ────────────
+        # A propósito editable acá (no solo en Configuración, que es admin-
+        # only) — la persona a cargo de PAE necesita poder ajustar el cupo
+        # base y ver/corregir la fecha de inicio sin depender de un admin.
+        perm_card = QFrame()
+        perm_card.setStyleSheet(f"""
+            QFrame {{ background: {C.SURFACE}; border: none; border-radius: 14px; }}
+        """)
+        perm_lay = QHBoxLayout(perm_card)
+        perm_lay.setContentsMargins(20, 14, 20, 14)
+        perm_lay.setSpacing(28)
+
+        # Cupos totales (permanente)
+        cupos_col = QVBoxLayout()
+        cupos_col.setSpacing(4)
+        lbl_cupos_perm = QLabel("CUPOS TOTALES (PERMANENTE)")
+        lbl_cupos_perm.setStyleSheet(
+            f"font-size: 10px; font-weight: 700; letter-spacing: 0.6px; "
+            f"color: {C.TEXT2}; background: transparent;"
+        )
+        cupos_col.addWidget(lbl_cupos_perm)
+        cupos_row = QHBoxLayout()
+        cupos_row.setSpacing(8)
+        self._spin_cupos_perm = QSpinBox()
+        self._spin_cupos_perm.setRange(1, 9999)
+        self._spin_cupos_perm.setFixedWidth(90)
+        cupos_row.addWidget(self._spin_cupos_perm)
+        btn_save_cupos = AButton("Guardar", small=True, sound_type="save")
+        btn_save_cupos.clicked.connect(self._save_cupos_totales)
+        cupos_row.addWidget(btn_save_cupos)
+        cupos_row.addStretch()
+        cupos_col.addLayout(cupos_row)
+        perm_lay.addLayout(cupos_col)
+
+        perm_lay.addWidget(VDivider())
+
+        # Fecha de inicio del servicio
+        inicio_col = QVBoxLayout()
+        inicio_col.setSpacing(4)
+        lbl_inicio = QLabel("FECHA DE INICIO DEL SERVICIO")
+        lbl_inicio.setStyleSheet(
+            f"font-size: 10px; font-weight: 700; letter-spacing: 0.6px; "
+            f"color: {C.TEXT2}; background: transparent;"
+        )
+        inicio_col.addWidget(lbl_inicio)
+        inicio_row = QHBoxLayout()
+        inicio_row.setSpacing(8)
+        self._date_inicio = QDateEdit()
+        self._date_inicio.setCalendarPopup(True)
+        self._date_inicio.setDisplayFormat("dd/MM/yyyy")
+        self._date_inicio.setFixedWidth(110)
+        inicio_row.addWidget(self._date_inicio)
+        btn_save_inicio = AButton("Guardar", small=True, sound_type="save")
+        btn_save_inicio.clicked.connect(self._save_fecha_inicio)
+        inicio_row.addWidget(btn_save_inicio)
+        inicio_row.addStretch()
+        inicio_col.addLayout(inicio_row)
+        hint_inicio = QLabel("No se generan strikes por días anteriores a esta fecha")
+        hint_inicio.setStyleSheet(f"font-size: 10px; color: {C.TEXT3}; background: transparent;")
+        inicio_col.addWidget(hint_inicio)
+        perm_lay.addLayout(inicio_col)
+
+        perm_lay.addStretch()
+
         self._lbl_default = QLabel("")
         self._lbl_default.setStyleSheet(
-            f"font-size: 12px; color: {C.TEXT2}; background: transparent;"
+            f"font-size: 11px; color: {C.TEXT3}; background: transparent;"
         )
-        default_row.addWidget(self._lbl_default)
-        default_row.addStretch()
-        root.addLayout(default_row)
+        perm_lay.addWidget(self._lbl_default)
+
+        root.addWidget(perm_card)
 
         # ── Two-column layout: Calendar | Edit panel ──
         cols = QHBoxLayout()
@@ -281,6 +343,61 @@ class QuotasScreen(QWidget):
         cols.addWidget(edit_card)
         root.addLayout(cols)
 
+        # ── Suspender varios días de una vez ──────────
+        bulk_card = QFrame()
+        bulk_card.setStyleSheet(f"""
+            QFrame {{ background: {C.SURFACE}; border: none; border-radius: 14px; }}
+        """)
+        bulk_lay = QVBoxLayout(bulk_card)
+        bulk_lay.setContentsMargins(20, 14, 20, 14)
+        bulk_lay.setSpacing(10)
+        bulk_lay.addWidget(SectionHeader("Suspender varios días"))
+
+        bulk_row = QHBoxLayout()
+        bulk_row.setSpacing(10)
+
+        lbl_desde = QLabel("Desde")
+        lbl_desde.setStyleSheet(f"font-size: 12px; color: {C.TEXT2}; background: transparent;")
+        bulk_row.addWidget(lbl_desde)
+        self._date_bulk_desde = QDateEdit()
+        self._date_bulk_desde.setCalendarPopup(True)
+        self._date_bulk_desde.setDisplayFormat("dd/MM/yyyy")
+        self._date_bulk_desde.setDate(QDate.currentDate())
+        bulk_row.addWidget(self._date_bulk_desde)
+
+        lbl_hasta = QLabel("Hasta")
+        lbl_hasta.setStyleSheet(f"font-size: 12px; color: {C.TEXT2}; background: transparent;")
+        bulk_row.addWidget(lbl_hasta)
+        self._date_bulk_hasta = QDateEdit()
+        self._date_bulk_hasta.setCalendarPopup(True)
+        self._date_bulk_hasta.setDisplayFormat("dd/MM/yyyy")
+        self._date_bulk_hasta.setDate(QDate.currentDate())
+        bulk_row.addWidget(self._date_bulk_hasta)
+
+        self._inp_bulk_motivo = QLineEdit()
+        self._inp_bulk_motivo.setPlaceholderText("Motivo (ej: Vacaciones de invierno)")
+        bulk_row.addWidget(self._inp_bulk_motivo, stretch=1)
+
+        btn_bulk = AButton("Suspender rango", sound_type="save")
+        btn_bulk.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.RED}; color: white;
+                border: none; border-radius: 10px;
+                padding: 9px 18px; font-size: 13px; font-weight: 600;
+            }}
+            QPushButton:hover {{ background: #CC2F26; }}
+        """)
+        btn_bulk.clicked.connect(self._suspend_range)
+        bulk_row.addWidget(btn_bulk)
+
+        bulk_lay.addLayout(bulk_row)
+
+        self._lbl_bulk_status = QLabel("")
+        self._lbl_bulk_status.setStyleSheet(f"font-size: 12px; color: {C.TEXT3}; background: transparent;")
+        bulk_lay.addWidget(self._lbl_bulk_status)
+
+        root.addWidget(bulk_card)
+
         # ── Upcoming exceptions table ─────────────────
         tbl_hdr = QHBoxLayout()
         tbl_hdr.addWidget(SectionHeader("Próximas excepciones"))
@@ -322,11 +439,17 @@ class QuotasScreen(QWidget):
     # ─────────────────────────────────────────────
 
     def _load_screen(self):
-        # Default cupo label
         default = db.get_config("cupos_totales", "100")
-        self._lbl_default.setText(
-            f"Cupo base (configuración): {default} estudiantes"
-        )
+        self._spin_cupos_perm.blockSignals(True)
+        self._spin_cupos_perm.setValue(int(default))
+        self._spin_cupos_perm.blockSignals(False)
+
+        fecha_inicio = db.get_config("servicio_fecha_inicio", "") or date.today().isoformat()
+        qd = QDate.fromString(fecha_inicio, "yyyy-MM-dd")
+        if qd.isValid():
+            self._date_inicio.setDate(qd)
+
+        self._lbl_default.setText("")
         self._load_exceptions()
         self._refresh_calendar_markers()
         self._load_date(self._selected_date)
@@ -509,6 +632,48 @@ class QuotasScreen(QWidget):
         self._load_exceptions()
         self._refresh_calendar_markers()
         self._load_date(fecha)
+
+    def _save_cupos_totales(self):
+        db.set_config("cupos_totales", str(self._spin_cupos_perm.value()))
+        sound.save()
+        self._flash_default(f"✓  Cupo base actualizado a {self._spin_cupos_perm.value()}")
+        self._fill_table(list(self._exceptions_cache.values()))  # refresca cupo por defecto en tabla
+
+    def _save_fecha_inicio(self):
+        fecha = self._date_inicio.date().toString("yyyy-MM-dd")
+        db.set_config("servicio_fecha_inicio", fecha)
+        sound.save()
+        self._flash_default(f"✓  Fecha de inicio guardada: {utils.format_fecha_display(fecha)}")
+
+    def _flash_default(self, texto: str):
+        self._lbl_default.setStyleSheet(f"font-size: 11px; color: {C.GREEN}; background: transparent;")
+        self._lbl_default.setText(texto)
+        QTimer.singleShot(2500, lambda: self._lbl_default.setText(""))
+
+    def _suspend_range(self):
+        d_desde = self._date_bulk_desde.date()
+        d_hasta = self._date_bulk_hasta.date()
+        if d_hasta < d_desde:
+            self._lbl_bulk_status.setStyleSheet(f"font-size: 12px; color: {C.RED}; background: transparent;")
+            self._lbl_bulk_status.setText("✗  La fecha 'hasta' no puede ser anterior a 'desde'")
+            sound.error()
+            return
+
+        motivo = self._inp_bulk_motivo.text().strip() or "Suspensión múltiple"
+        n = 0
+        d = d_desde
+        while d <= d_hasta:
+            db.set_quota_exception(d.toString("yyyy-MM-dd"), None, 1, motivo)
+            n += 1
+            d = d.addDays(1)
+
+        sound.save()
+        self._lbl_bulk_status.setStyleSheet(f"font-size: 12px; color: {C.GREEN}; background: transparent;")
+        self._lbl_bulk_status.setText(f"✓  {n} día(s) suspendido(s): {motivo}")
+        QTimer.singleShot(3000, lambda: self._lbl_bulk_status.setText(""))
+        self._load_exceptions()
+        self._refresh_calendar_markers()
+        self._load_date(self._selected_date)
 
     def showEvent(self, event):
         super().showEvent(event)

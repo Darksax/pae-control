@@ -149,6 +149,11 @@ def init_db():
         "weather_lat":             "-37.3572",
         "weather_lon":             "-72.7013",
         "theme_mode":              "dark",
+        # Primer arranque real del servicio — se sella con la fecha de HOY
+        # la primera vez que corre esta versión (INSERT OR IGNORE no toca
+        # instalaciones que ya tengan un valor guardado). Antes de esta
+        # fecha, detectar_ausencias_previas() no genera strikes.
+        "servicio_fecha_inicio":   date.today().isoformat(),
     }
     for k, v in defaults.items():
         c.execute("INSERT OR IGNORE INTO config VALUES (?,?)", (k, v))

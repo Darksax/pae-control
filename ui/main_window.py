@@ -703,36 +703,49 @@ class MainWindow(QMainWindow):
             pass
 
     def _notify_update(self, manifest: dict, new_ver: str):
-        """Notifica update disponible en el botón toolbar."""
-        self._btn_novedades.setText(f"↓ v{new_ver} disponible")
+        """Update disponible: deja el botón como respaldo y además pregunta directo."""
+        self._set_update_button(f"↓ v{new_ver} disponible", C.BLUE)
+        self._btn_novedades.clicked.connect(
+            lambda: self._download_update(manifest, new_ver)
+        )
+
+        from PyQt6.QtWidgets import QMessageBox
+        notas = manifest.get("notes") or []
+        detalle = "\n".join(f"• {n}" for n in notas[:6])
+        resp = QMessageBox.question(
+            self, "Actualización disponible",
+            f"Hay una nueva versión disponible: v{new_ver}\n\n{detalle}\n\n"
+            f"¿Instalarla ahora? La app se reiniciará al terminar.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if resp == QMessageBox.StandardButton.Yes:
+            self._download_update(manifest, new_ver)
+
+    def _set_update_button(self, text: str, color: str):
+        self._btn_novedades.setText(text)
         self._btn_novedades.setStyleSheet(f"""
             QPushButton {{
-                background: {C.BLUE_DIM};
-                color: {C.BLUE};
-                border: 1px solid {C.BLUE}44;
+                background: {color}22;
+                color: {color};
+                border: 1px solid {color}44;
                 border-radius: 7px;
                 padding: 0 10px;
                 font-size: 12px;
                 font-weight: 600;
             }}
             QPushButton:hover {{
-                background: {C.BLUE}22;
+                background: {color}33;
             }}
         """)
-        # Desconectar handler anterior y conectar el de descarga
+
+    def _download_update(self, manifest: dict, new_ver: str):
+        from updater import download_patch_files
+
         try:
             self._btn_novedades.clicked.disconnect()
         except Exception:
             pass
-        self._btn_novedades.clicked.connect(
-            lambda: self._download_update(manifest, new_ver)
-        )
-
-    def _download_update(self, manifest: dict, new_ver: str):
-        from updater import download_patch_files
-        from ui.startup_screen import StartupDialog
-
-        self._btn_novedades.setText("Descargando…")
+        self._set_update_button("Descargando…", C.BLUE)
         self._btn_novedades.setEnabled(False)
 
         def _do_download():
@@ -745,22 +758,45 @@ class MainWindow(QMainWindow):
 
     def _after_download(self, ok: bool, errors: list, new_ver: str, manifest: dict):
         if ok:
-            self._btn_novedades.setText(f"✓ v{new_ver} — Reiniciar para aplicar")
-            self._btn_novedades.setStyleSheet(f"""
-                QPushButton {{
-                    background: {C.GREEN}22;
-                    color: {C.GREEN};
-                    border: 1px solid {C.GREEN}44;
-                    border-radius: 7px;
-                    padding: 0 10px;
-                    font-size: 12px;
-                    font-weight: 600;
-                }}
-            """)
+            self._set_update_button(f"✓ v{new_ver} — Reiniciar para aplicar", C.GREEN)
             self._btn_novedades.setEnabled(True)
+            try:
+                self._btn_novedades.clicked.disconnect()
+            except Exception:
+                pass
+            self._btn_novedades.clicked.connect(self._restart_app)
+
+            from PyQt6.QtWidgets import QMessageBox
+            resp = QMessageBox.question(
+                self, "Actualización instalada",
+                f"v{new_ver} se descargó correctamente.\n\n¿Reiniciar la app ahora para aplicarla?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if resp == QMessageBox.StandardButton.Yes:
+                self._restart_app()
         else:
-            self._btn_novedades.setText("⚠ Error en descarga")
+            self._set_update_button("⚠ Error en descarga", C.RED)
             self._btn_novedades.setEnabled(True)
+
+    def _restart_app(self):
+        """Relanza el ejecutable (o `python main.py` en modo fuente) y cierra esta instancia."""
+        import subprocess
+        import sys
+        import os
+        from PyQt6.QtWidgets import QApplication
+        try:
+            if getattr(sys, "frozen", False):
+                subprocess.Popen([sys.executable])
+            else:
+                subprocess.Popen([sys.executable, os.path.abspath("main.py")])
+        except Exception as exc:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self, "No se pudo reiniciar",
+                f"Cierra y abre MiAppoderado manualmente para aplicar la actualización.\n\n{exc}"
+            )
+            return
+        QApplication.quit()
 
     # ─────────────────────────────────────────────
     #  Friday weekly alert

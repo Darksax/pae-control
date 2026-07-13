@@ -208,10 +208,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            patchnotes.py
-          sparse-checkout-cone-mode: false
+        # Checkout completo (no sparse): el paso de manifest.json de más
+        # abajo necesita leer y hashear todos los .py del repo.
 
       - name: Leer versión desde patchnotes.py
         id: ver
@@ -223,6 +221,51 @@ jobs:
         with:
           path: release-files
           merge-multiple: true
+
+      # manifest.json para el auto-update en caliente (ver updater.py): lista
+      # cada .py parcheable con su hash y su URL fijada al commit exacto de
+      # este build (inmutable, aunque "latest" como release vaya rotando).
+      # Se excluyen los módulos que updater.py NO puede parchear nunca:
+      # main.py (se ejecuta directo, no se importa vía sys.path), y
+      # updater.py/debug_mode.py (se cargan en main.py ANTES de que
+      # apply_local_patches() agregue patches/ al sys.path, así que un
+      # parche sobre ellos mismos nunca llegaría a aplicarse).
+      - name: Generar manifest.json (auto-update)
+        run: |
+          python3 - <<'PYEOF'
+          import json, hashlib, subprocess
+          from patchnotes import VERSION, BUILD_DATE, PATCHNOTES
+
+          sha = "${{ github.sha }}"
+          exclude = {"main.py", "updater.py", "debug_mode.py",
+                     "make_icon.py", "make_AppIcon_win.py"}
+
+          files = subprocess.run(
+              ["git", "ls-files", "*.py"], capture_output=True, text=True, check=True
+          ).stdout.splitlines()
+
+          patches = []
+          for f in files:
+              if f.startswith("tests/") or f.startswith("hooks/") or f in exclude:
+                  continue
+              with open(f, "rb") as fh:
+                  data = fh.read()
+              patches.append({
+                  "path": f,
+                  "url": f"https://raw.githubusercontent.com/Darksax/pae-control/{sha}/{f}",
+                  "sha256": hashlib.sha256(data).hexdigest(),
+              })
+
+          manifest = {
+              "version": VERSION,
+              "date": BUILD_DATE,
+              "notes": PATCHNOTES[0]["notes"],
+              "patches": patches,
+          }
+          with open("manifest.json", "w", encoding="utf-8") as fh:
+              json.dump(manifest, fh, ensure_ascii=False, indent=2)
+          print(f"manifest.json generado — {len(patches)} archivos, version {VERSION}")
+          PYEOF
 
       # "latest" es el puntero rolling que siempre apunta al build más
       # reciente de main — es el link que va en el README
@@ -251,7 +294,9 @@ jobs:
             Ninguna requiere Python instalado.
           make_latest: true
           fail_on_unmatched_files: false
-          files: release-files/*
+          files: |
+            release-files/*
+            manifest.json
 
       # Release versionado — un punto fijo y citable para esta versión
       # específica (no se sobreescribe con el próximo push a main).

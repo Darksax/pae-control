@@ -1,14 +1,14 @@
 """
 patchnotes.py — Fuente de verdad para versión, autoría y changelog de MiAppoderado.
 
-Para publicar un update:
-  1. Sube los .py modificados a tu repo GitHub
-  2. Actualiza manifest.json en el repo con la nueva versión y lista de archivos
-  3. Los clientes descargan automáticamente los parches al abrir la app
+manifest.json se genera y publica solo — el job "publish" en
+.github/workflows/build-release.yml lo arma en cada push a main (hasheando
+los .py del commit) y lo sube como asset del release "latest". No hace
+falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.3"
+VERSION       = "1.5.4"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -16,11 +16,11 @@ INSTITUTION   = "Liceo Bicentenario Héroes de la Concepción"
 CITY          = "Laja, Chile"
 
 # ── URL del manifest en GitHub ─────────────────────────────────────────────
-# Cambia TU_USUARIO por tu usuario de GitHub y el nombre del repo si lo renombras.
-# El repo debe ser público (o usar token si es privado).
+# Asset del release "latest" (no un archivo commiteado en main) — así CI lo
+# regenera y publica en cada build sin necesitar un commit de vuelta al repo.
 # Deja vacío ("") para deshabilitar updates automáticos.
 GITHUB_MANIFEST = (
-    "https://raw.githubusercontent.com/Darksax/pae-control/main/manifest.json"
+    "https://github.com/Darksax/pae-control/releases/latest/download/manifest.json"
 )
 
 # ── Changelog ─────────────────────────────────────────────────────────────
@@ -31,6 +31,16 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.4",
+        "date":    "2026-07-13",
+        "title":   "Actualizaciones automáticas en caliente",
+        "notes": [
+            "Al abrir, la app pregunta directo si hay una versión nueva disponible (antes solo cambiaba un botón que había que notar) — Sí la descarga e instala, y ofrece reiniciar sola para aplicarla",
+            "manifest.json (la lista de archivos parcheables) ahora se genera y publica solo en cada build de CI, en vez de mantenerse a mano — quedaba desactualizado desde junio",
+            "Este mecanismo cubre cambios de código Python; íconos, fuentes, dependencias nuevas o el instalador siguen requiriendo bajar el instalador completo desde Releases",
+        ],
+    },
     {
         "version": "1.5.3",
         "date":    "2026-07-13",

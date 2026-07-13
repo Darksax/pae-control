@@ -5,6 +5,19 @@ main.py — Punto de entrada MiAppoderado.
 import sys
 import os
 
+# ── 0. Forzar UTF-8 en stdout/stderr ────────────────────────────────────────
+# En Windows, sin esto, cualquier print()/log con un caracter como "ñ" puede
+# reventar con "'ascii' codec can't encode character..." dependiendo del
+# codepage del sistema — pasó en un PC con Windows en español. sys.stdout/
+# stderr pueden ser None en el build windowed (console=False) de PyInstaller,
+# de ahí el chequeo.
+for _stream in (sys.stdout, sys.stderr):
+    if _stream is not None and hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 # ── 1. Resolver BASE_DIR ────────────────────────────────────────────────────
 if getattr(sys, "frozen", False):
     BASE_DIR = sys._MEIPASS

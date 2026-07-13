@@ -8,7 +8,7 @@ Para publicar un update:
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.2"
+VERSION       = "1.5.3"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,15 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.3",
+        "date":    "2026-07-13",
+        "title":   "Corrección: error de codificación 'ascii' en Sincronizar (Windows)",
+        "notes": [
+            "Prueba de conexión / sincronización con Supabase: en algunos PC con Windows fallaba con 'ascii codec can't encode character...' (una ñ) en vez de conectar — se fuerza UTF-8 en stdout/stderr al iniciar la app para evitar este tipo de error de codificación",
+            "El error de conexión ahora también queda registrado con su traceback completo en los logs, para poder diagnosticar más rápido si vuelve a ocurrir",
+        ],
+    },
     {
         "version": "1.5.2",
         "date":    "2026-07-13",

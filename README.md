@@ -12,6 +12,8 @@ Cada push a `main` compila automáticamente una versión nueva para ambas plataf
 
 **➜ [github.com/Darksax/pae-control/releases/latest](https://github.com/Darksax/pae-control/releases/latest)**
 
+Ese link siempre sigue a `main` (puede tener cambios sin probar a fondo). Para una versión fija y citable, usa la [lista de releases versionados](https://github.com/Darksax/pae-control/releases) (ej. `v1.5.0`).
+
 **Windows** (10 de 64-bit, 1809 o superior):
 - `MiAppoderado.exe` — versión portable, se ejecuta directo sin instalar.
 - `MiAppoderado_Setup_*.exe` — instalador con acceso directo en Escritorio e Inicio.

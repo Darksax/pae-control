@@ -188,25 +188,44 @@ jobs:
           if-no-files-found: warn
 
   # ══════════════════════════════════════════════════════════
-  #  PUBLICAR — un solo release "latest" con ambas plataformas
+  #  PUBLICAR — release rolling "latest" + release versionado aparte
   # ══════════════════════════════════════════════════════════
   publish:
     needs: [build-windows, build-macos]
     if: always() && (needs.build-windows.result == 'success' || needs.build-macos.result == 'success')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            patchnotes.py
+          sparse-checkout-cone-mode: false
+
+      - name: Leer versión desde patchnotes.py
+        id: ver
+        run: |
+          V=$(python3 -c "from patchnotes import VERSION; print(VERSION)")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
       - uses: actions/download-artifact@v4
         with:
           path: release-files
           merge-multiple: true
 
-      - name: Publicar Release "latest"
+      # "latest" es el puntero rolling que siempre apunta al build más
+      # reciente de main — es el link que va en el README
+      # (github.com/.../releases/latest). Se mantiene make_latest=true para
+      # que ese atajo de GitHub (que sigue la bandera, no el nombre literal
+      # del tag) siga resolviendo acá y no al release versionado de abajo.
+      - name: Publicar Release "latest" (rolling)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: "MiAppoderado — build más reciente"
+          name: "MiAppoderado — build más reciente (main)"
           body: |
             Build automático generado desde el commit ${{ github.sha }} en `main`.
+            Este link siempre apunta al último commit — para una versión
+            estable y citable usa [la release v${{ steps.ver.outputs.version }}](../../releases/tag/v${{ steps.ver.outputs.version }}).
 
             **Windows**
             - `MiAppoderado.exe` → versión portable, se ejecuta directo sin instalar.
@@ -219,5 +238,31 @@ jobs:
 
             Ninguna requiere Python instalado.
           make_latest: true
+          fail_on_unmatched_files: false
+          files: release-files/*
+
+      # Release versionado — un punto fijo y citable para esta versión
+      # específica (no se sobreescribe con el próximo push a main).
+      - name: Publicar Release versionado
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: "MiAppoderado v${{ steps.ver.outputs.version }}"
+          body: |
+            Ver el changelog completo de esta versión en [patchnotes.py](../../blob/main/patchnotes.py).
+
+            Compilado desde el commit ${{ github.sha }}.
+
+            **Windows**
+            - `MiAppoderado.exe` → versión portable, se ejecuta directo sin instalar.
+            - `MiAppoderado_Setup_*.exe` → instalador con acceso directo en Escritorio e Inicio.
+              Requiere Windows 10 (64-bit) 1809+.
+
+            **macOS**
+            - `MiAppoderado_mac.dmg` → arrastra a Aplicaciones.
+            - `MiAppoderado_mac.zip` → alternativa si el .dmg no está disponible en esta build.
+
+            Ninguna requiere Python instalado.
+          make_latest: false
           fail_on_unmatched_files: false
           files: release-files/*

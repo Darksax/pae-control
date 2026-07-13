@@ -1,5 +1,5 @@
 #!/bin/bash
-# BUILD_MAC.command — Compila PAE Control como .app para macOS
+# BUILD_MAC.command — Compila MiAppoderado como .app para macOS
 # Doble clic para ejecutar.
 
 set -e
@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
-echo "║   PAE Control — Build macOS              ║"
+echo "║   MiAppoderado — Build macOS              ║"
 echo "║   Liceo Bicentenario · Laja              ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
@@ -65,9 +65,9 @@ echo ""
 # ── 5. Compilar ───────────────────────────────────────────────────────────
 echo "Compilando .app (puede tardar 2-5 minutos)..."
 echo ""
-"$PY" -m PyInstaller PAEControl.spec --clean --noconfirm
+"$PY" -m PyInstaller MiAppoderado.spec --clean --noconfirm
 
-if [ ! -d "dist/PAE Control.app" ]; then
+if [ ! -d "dist/MiAppoderado.app" ]; then
     echo ""
     echo "ERROR: No se generó el .app. Revisa los mensajes de error arriba."
     read -p "Presiona Enter para salir..."
@@ -89,7 +89,7 @@ echo ""
 # abre la app, incluso con Qt 6.9.1 pinneado. Confirmado reproduciendo el
 # crash y arreglándolo directamente en macOS 26.2.
 echo "Corrigiendo install names de Qt (symlinks a framework real)..."
-( cd "dist/PAE Control.app/Contents/Frameworks"
+( cd "dist/MiAppoderado.app/Contents/Frameworks"
   for lib in QtCore QtGui QtWidgets QtNetwork QtSvg QtPdf QtDBus; do
     real="PyQt6/Qt6/lib/${lib}.framework/Versions/A/${lib}"
     if [ -f "$real" ] && [ -f "$lib" ] && [ ! -L "$lib" ]; then
@@ -106,7 +106,7 @@ echo ""
 # (@rpath/QtCore.framework/Versions/A/QtCore) = correcto.
 # Formato plano (@rpath/QtCore) = solo seguro con Qt <= 6.9.x.
 echo "Verificando referencias a QtCore en el bundle:"
-otool -L "dist/PAE Control.app/Contents/Frameworks/PyQt6/QtCore.abi3.so" 2>/dev/null \
+otool -L "dist/MiAppoderado.app/Contents/Frameworks/PyQt6/QtCore.abi3.so" 2>/dev/null \
     | grep -i qtcore || echo "WARN  No se pudo inspeccionar QtCore.abi3.so"
 echo ""
 
@@ -116,7 +116,7 @@ echo ""
 # "-" = ad-hoc signature: no requiere cuenta de desarrollador Apple.
 echo "Firmando app (ad-hoc, sin cuenta Apple necesaria)..."
 if command -v codesign &>/dev/null; then
-    codesign --force --deep --sign - "dist/PAE Control.app" 2>&1 \
+    codesign --force --deep --sign - "dist/MiAppoderado.app" 2>&1 \
         && echo "OK  App firmada (ad-hoc)" \
         || echo "WARN  codesign falló — el app puede crashear en macOS 26+"
 else
@@ -125,7 +125,7 @@ fi
 echo ""
 
 # ── 8. Crear DMG para distribución ─────────────────────────────────────────
-DMG_NAME="PAEControl_v1.0_mac.dmg"
+DMG_NAME="MiAppoderado_v1.0_mac.dmg"
 echo "Creando $DMG_NAME..."
 
 # Crear carpeta temporal para el DMG
@@ -135,11 +135,11 @@ echo "Creando $DMG_NAME..."
 DMG_DIR="dist/dmg_tmp"
 rm -rf "$DMG_DIR"
 mkdir -p "$DMG_DIR"
-cp -rP "dist/PAE Control.app" "$DMG_DIR/"
+cp -rP "dist/MiAppoderado.app" "$DMG_DIR/"
 ln -s /Applications "$DMG_DIR/Applications"
 
 hdiutil create \
-    -volname "PAE Control" \
+    -volname "MiAppoderado" \
     -srcfolder "$DMG_DIR" \
     -ov -format UDZO \
     -o "dist/$DMG_NAME" \
@@ -154,10 +154,10 @@ echo "╔═══════════════════════�
 echo "║   BUILD COMPLETADO                       ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
-echo "  .app  →  dist/PAE Control.app"
+echo "  .app  →  dist/MiAppoderado.app"
 [ -f "dist/$DMG_NAME" ] && echo "  .dmg  →  dist/$DMG_NAME"
 echo ""
-echo "Para distribuir: copia 'PAE Control.app' a la carpeta Aplicaciones"
+echo "Para distribuir: copia 'MiAppoderado.app' a la carpeta Aplicaciones"
 echo "o comparte el archivo $DMG_NAME."
 echo ""
 

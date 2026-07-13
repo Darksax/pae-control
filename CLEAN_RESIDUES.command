@@ -1,19 +1,19 @@
 #!/bin/bash
-# CLEAN_RESIDUES.command — Elimina residuos de instalaciones previas de PAE Control.
+# CLEAN_RESIDUES.command — Elimina residuos de instalaciones previas de MiAppoderado.
 #
 # IMPORTANTE: NO toca ~/pae_control/pae.db (tu base de datos) ni el código fuente.
 # Doble clic para ejecutar.
 
-BUNDLE_ID="cl.laja.paecontrol"
-APP_NAME="PAE Control"
+BUNDLE_ID="cl.laja.miappoderado"
+APP_NAME="MiAppoderado"
 
 echo "╔══════════════════════════════════════════╗"
-echo "║   Limpieza de residuos PAE Control       ║"
+echo "║   Limpieza de residuos MiAppoderado       ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
 # Cerrar la app si está corriendo
-pkill -x "PAE Control" 2>/dev/null && echo "App cerrada" && sleep 1
+pkill -x "MiAppoderado" 2>/dev/null && echo "App cerrada" && sleep 1
 
 RESIDUES=(
     "$HOME/Library/Saved Application State/${BUNDLE_ID}.savedState"

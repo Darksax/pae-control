@@ -1,5 +1,5 @@
 """
-patchnotes.py — Fuente de verdad para versión, autoría y changelog de PAE Control.
+patchnotes.py — Fuente de verdad para versión, autoría y changelog de MiAppoderado.
 
 Para publicar un update:
   1. Sube los .py modificados a tu repo GitHub
@@ -8,8 +8,8 @@ Para publicar un update:
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.4.0-beta"
-BUILD_DATE    = "2026-06-14"
+VERSION       = "1.5.0"
+BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
 INSTITUTION   = "Liceo Bicentenario Héroes de la Concepción"
@@ -31,6 +31,24 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.0",
+        "date":    "2026-07-13",
+        "title":   "MiAppoderado: rebrand, rediseño visual y asistente IA",
+        "notes": [
+            "Renombrado de PAE Control a MiAppoderado — la app ya cubre más que solo el control PAE",
+            "Ícono nuevo: glifo minimalista de apoderado/guardián sobre azul institucional",
+            "Asistente IA 'Liceín' (Gemini): responde dudas de uso de la app y del reglamento del liceo; burbuja flotante cerrable; clave y reglamento se comparten entre instalaciones vía Supabase",
+            "Rediseño visual: tipografía Inter, íconos Lucide reemplazando los glifos unicode, tarjetas con sombra suave en vez de bordes duros en Escaneo, Reportes, Inspectoría y el resto de las pantallas",
+            "Sistema de temas: Oscuro / Claro / Pride Month, selector en la barra superior",
+            "Corrección: un escaneo fuera de horario ya no registra por error en la comida siguiente (nuevo estado 'fuera_horario')",
+            "Corrección: los strikes se reinician al cerrar el período/semestre en vez de acumularse para siempre",
+            "Aviso visual (no bloqueante) cuando un escaneo supera el cupo diario configurado",
+            "Foco de escaneo: vuelve solo al campo de RUN tras 5s de inactividad, con aviso 'vuelve a escanear' — evita que la pistola lectora mande texto a un campo equivocado",
+            "Barra de noticias de educación eliminada (RSS y configuración asociada)",
+            "Build automático en GitHub Actions: Windows (.exe + instalador) y macOS (.app + .dmg) en cada push, publicados juntos en un solo release",
+        ],
+    },
     {
         "version": "1.4.0-beta",
         "date":    "2026-06-14",

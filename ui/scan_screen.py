@@ -1,5 +1,5 @@
 """
-scan_screen.py — Pantalla de escaneo PAE Control 0.9 Alpha
+scan_screen.py — Pantalla de escaneo MiAppoderado 0.9 Alpha
 macOS Sonoma dark · Liceo Bicentenario palette
 
 Features:
@@ -15,7 +15,7 @@ Features:
 from datetime import datetime, date, timedelta
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QFrame, QSizePolicy, QGraphicsOpacityEffect,
+    QFrame, QSizePolicy, QGraphicsOpacityEffect, QGraphicsDropShadowEffect,
     QLineEdit, QListWidget, QListWidgetItem
 )
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtSignal, QPoint
@@ -25,7 +25,8 @@ import logic
 import utils
 import db
 from ui.theme   import C, sound, fade_in, fade_out
-from ui.widgets import AButton, StatCard, HDivider, VDivider, SectionHeader, Badge, RUNLineEdit, _fmt_run_live, _RUN_COMPLETO_RE
+from ui.widgets import AButton, IconStatCard, HDivider, VDivider, SectionHeader, Badge, RUNLineEdit, _fmt_run_live, _RUN_COMPLETO_RE
+from ui.icons import load_pixmap
 
 
 # ══════════════════════════════════════════════════════
@@ -101,10 +102,15 @@ class ResultCard(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Sin borde en reposo — dirección de diseño: limpio/minimal, la
+        # separación viene del contraste de fondo con la página, no de una
+        # caja con borde en cada sección. El borde de color SÍ aparece
+        # brevemente al escanear (_flash_border) porque ahí es señal real
+        # (verde/rojo/ámbar según resultado), no decoración.
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 20px;
             }}
         """)
@@ -460,7 +466,7 @@ class ResultCard(QFrame):
         self._anim_in = anim  # keep reference
 
     def _flash_border(self, color: str):
-        """Briefly highlight card border with result color."""
+        """Briefly highlight card border with result color, then fade to borderless."""
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
@@ -471,7 +477,7 @@ class ResultCard(QFrame):
         QTimer.singleShot(600, lambda: self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 20px;
             }}
         """))
@@ -503,7 +509,7 @@ class ResultCard(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 20px;
             }}
         """)
@@ -592,14 +598,25 @@ class _NameSearchBar(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
+        shadow_name = QGraphicsDropShadowEffect(self)
+        shadow_name.setBlurRadius(18)
+        shadow_name.setXOffset(0)
+        shadow_name.setYOffset(2)
+        shadow_name.setColor(QColor(0, 0, 0, 80))
+        self.setGraphicsEffect(shadow_name)
 
         lay = QHBoxLayout(self)
         lay.setContentsMargins(10, 0, 14, 0)
         lay.setSpacing(8)
+
+        icon_search = QLabel()
+        icon_search.setPixmap(load_pixmap("search", C.TEXT2, 16))
+        icon_search.setStyleSheet("background: transparent;")
+        lay.addWidget(icon_search)
 
         # ── Toggle buttons ─────────────────────────────
         from PyQt6.QtWidgets import QPushButton
@@ -875,6 +892,16 @@ class ScanScreen(QWidget):
         self._timer_stats.timeout.connect(self._refresh_stats)
         self._timer_stats.start(30_000)   # refresh stats every 30s
 
+        # Watchdog de foco: si el usuario hace click en otro lado (fuera del
+        # input) y se queda 5s sin tocar nada, el foco vuelve solo al campo
+        # de escaneo. Sin esto, un click perdido deja la pistola lectora
+        # mandando texto a un campo que no lo espera — parece que "no hace
+        # nada" cuando en realidad el RUN se está escribiendo en otro lado.
+        self._timer_idle_focus = QTimer(self)
+        self._timer_idle_focus.setSingleShot(True)
+        self._timer_idle_focus.timeout.connect(self._on_idle_timeout)
+        self._idle_focus_ms = 5000
+
         # Timer auto-reset configurable: ms (0 = infinito)
         self._auto_reset_ms: int = 5000
 
@@ -915,7 +942,7 @@ class ScanScreen(QWidget):
         h_lay.setSpacing(0)
 
         self._lbl_school = QLabel(
-            db.get_config("nombre_establecimiento", "PAE Control")
+            db.get_config("nombre_establecimiento", "MiAppoderado")
         )
         self._lbl_school.setStyleSheet(
             f"font-size: 15px; font-weight: 600; color: {C.TEXT}; background: transparent;"
@@ -963,18 +990,30 @@ class ScanScreen(QWidget):
         input_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 16px;
             }}
         """)
+        shadow_input = QGraphicsDropShadowEffect(input_card)
+        shadow_input.setBlurRadius(22)
+        shadow_input.setXOffset(0)
+        shadow_input.setYOffset(3)
+        shadow_input.setColor(QColor(0, 0, 0, 90))
+        input_card.setGraphicsEffect(shadow_input)
+
         in_lay = QVBoxLayout(input_card)
         in_lay.setContentsMargins(0, 0, 0, 0)
         in_lay.setSpacing(0)
 
-        # Fila superior: dot + input + botón
+        # Fila superior: ícono + dot + input + botón
         top_row = QHBoxLayout()
         top_row.setContentsMargins(16, 12, 16, 8)
         top_row.setSpacing(10)
+
+        icon_scan = QLabel()
+        icon_scan.setPixmap(load_pixmap("scan-line", C.BLUE, 20))
+        icon_scan.setStyleSheet("background: transparent;")
+        top_row.addWidget(icon_scan)
 
         # Indicador de foco (punto pulsante)
         self._focus_dot = QFrame()
@@ -1065,56 +1104,63 @@ class ScanScreen(QWidget):
         self._name_bar.run_selected.connect(self._on_name_selected)
         left.addWidget(self._name_bar)
 
-        # Right: stats panel
+        # Right: stats panel — sin caja contenedora (evita "caja dentro de
+        # caja"); cada IconStatCard aporta su propia sombra/profundidad, y
+        # el agrupamiento se hace con SectionHeader + espaciado en vez de
+        # líneas divisorias duras en cada sección.
         right = QFrame()
         right.setFixedWidth(240)
-        right.setStyleSheet(f"""
-            QFrame {{
-                background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
-                border-radius: 16px;
-            }}
-        """)
+        right.setStyleSheet("QFrame { background: transparent; border: none; }")
         r_lay = QVBoxLayout(right)
-        r_lay.setContentsMargins(16, 20, 16, 20)
-        r_lay.setSpacing(14)
+        r_lay.setContentsMargins(4, 8, 4, 8)
+        r_lay.setSpacing(10)
 
         # ── Comida activa
         r_lay.addWidget(SectionHeader("Comida activa"))
 
+        meal_row = QHBoxLayout()
+        meal_row.setSpacing(8)
+        self._icon_meal_clock = QLabel()
+        self._icon_meal_clock.setPixmap(load_pixmap("clock", C.GOLD_500, 18))
+        self._icon_meal_clock.setStyleSheet("background: transparent;")
+        meal_row.addWidget(self._icon_meal_clock)
+
+        meal_col = QVBoxLayout()
+        meal_col.setSpacing(0)
         self._stat_meal_name = QLabel("—")
         self._stat_meal_name.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {C.GOLD_500}; background: transparent;"
+            f"font-size: 19px; font-weight: 700; color: {C.GOLD_500}; background: transparent;"
         )
-        r_lay.addWidget(self._stat_meal_name)
+        meal_col.addWidget(self._stat_meal_name)
 
         self._stat_meal_time = QLabel("")
         self._stat_meal_time.setStyleSheet(
             f"font-size: 12px; color: {C.TEXT3}; background: transparent;"
         )
-        r_lay.addWidget(self._stat_meal_time)
+        meal_col.addWidget(self._stat_meal_time)
+        meal_row.addLayout(meal_col, 1)
+        r_lay.addLayout(meal_row)
 
-        r_lay.addWidget(HDivider())
+        r_lay.addSpacing(6)
 
         # ── Stat cards
         r_lay.addWidget(SectionHeader("Capacidad"))
 
-        self._card_activos = StatCard("Activos",        "—", accent=C.NAVY_400)
-        self._card_disp    = StatCard("Almuerzos hoy", "—", accent=C.GREEN)
-        self._card_espera  = StatCard("En espera",     "—", accent=C.AMBER)
+        self._card_activos = IconStatCard("users",           "Total alumnos activos",     "—", accent=C.BLUE)
+        self._card_disp    = IconStatCard("utensils",        "Almuerzos disponibles hoy", "—", accent=C.GREEN)
 
-        for card in (self._card_activos, self._card_disp, self._card_espera):
+        for card in (self._card_activos, self._card_disp):
             r_lay.addWidget(card)
 
-        r_lay.addWidget(HDivider())
+        r_lay.addSpacing(6)
 
         # ── Registros comida actual
         r_lay.addWidget(SectionHeader("Registros hoy"))
 
-        self._card_regs = StatCard("Esta comida", "—", accent=C.GOLD_500)
+        self._card_regs = IconStatCard("clipboard-check", "Registrados en esta comida", "—", accent=C.GOLD_500)
         r_lay.addWidget(self._card_regs)
 
-        r_lay.addWidget(HDivider())
+        r_lay.addSpacing(6)
 
         # ── Últimos 10 escaneos (ocultable desde Configuración)
         self._historial_frame = QFrame()
@@ -1280,9 +1326,6 @@ class ScanScreen(QWidget):
         self._card_disp.set_value(str(disp))
         self._card_disp._accent = C.GREEN if disp > 0 else C.RED
         self._card_disp.flash(C.GREEN if disp > 0 else C.RED)
-
-        self._card_espera.set_value(str(info["lista_espera"]))
-        self._card_espera.flash()
 
         # Active meal
         self._comidas = db.get_comidas()
@@ -1467,6 +1510,37 @@ class ScanScreen(QWidget):
         super().showEvent(event)
         self._apply_scan_config()
         QTimer.singleShot(80, self._input.setFocus)
+        from PyQt6.QtWidgets import QApplication
+        QApplication.instance().installEventFilter(self)
+        self._timer_idle_focus.start(self._idle_focus_ms)
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        from PyQt6.QtWidgets import QApplication
+        QApplication.instance().removeEventFilter(self)
+        self._timer_idle_focus.stop()
+
+    def eventFilter(self, obj, event):
+        """Cualquier actividad de teclado/mouse reinicia el watchdog de foco."""
+        from PyQt6.QtCore import QEvent
+        if event.type() in (QEvent.Type.KeyPress, QEvent.Type.MouseButtonPress):
+            self._timer_idle_focus.start(self._idle_focus_ms)
+        return super().eventFilter(obj, event)
+
+    def _on_idle_timeout(self):
+        """5s sin actividad: si el foco no está en el input, lo recupera."""
+        if not self.isVisible():
+            return
+        if not self._input.hasFocus():
+            self._input.setFocus()
+            self._input.clear()
+            self._show_idle_hint()
+
+    def _show_idle_hint(self):
+        """Aviso breve en el placeholder — el foco se perdió y se recuperó."""
+        original = self._input.placeholderText()
+        self._input.setPlaceholderText("Foco recuperado — vuelve a escanear")
+        QTimer.singleShot(3000, lambda: self._input.setPlaceholderText(original))
 
     def _apply_scan_config(self):
         """Lee la configuración de escaneo y aplica todos los parámetros."""

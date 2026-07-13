@@ -1,5 +1,5 @@
 """
-updater.py — Sistema de parches sin recompilar para PAE Control.
+updater.py — Sistema de parches sin recompilar para MiAppoderado.
 
 Cómo funciona:
   1. Los parches son archivos .py que sobreescriben módulos del bundle.

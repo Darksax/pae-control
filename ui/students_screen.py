@@ -1,5 +1,5 @@
 """
-students_screen.py — Gestión de estudiantes PAE Control
+students_screen.py — Gestión de estudiantes MiAppoderado
 
 Tabs: Todos | En PAE | Lista de espera
 Columnas ordenables por click en encabezado
@@ -147,7 +147,7 @@ class StudentsScreen(QWidget):
         bar.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)

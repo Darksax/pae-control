@@ -1,8 +1,8 @@
 @echo off
-REM build_windows.bat — Genera PAE Control.exe para Windows
+REM build_windows.bat — Genera MiAppoderado.exe para Windows
 REM Requiere: pip install pyinstaller PyQt6 openpyxl
 
-echo === PAE Control - Build Windows ===
+echo === MiAppoderado - Build Windows ===
 
 pip install PyQt6 openpyxl pyinstaller --upgrade
 
@@ -10,7 +10,7 @@ rmdir /s /q build 2>nul
 rmdir /s /q dist 2>nul
 
 pyinstaller ^
-  --name "PAE Control" ^
+  --name "MiAppoderado" ^
   --windowed ^
   --onedir ^
   --add-data "ui;ui" ^
@@ -23,5 +23,5 @@ pyinstaller ^
 
 echo.
 echo === Build completado ===
-echo Ejecutable en: dist\PAE Control\PAE Control.exe
+echo Ejecutable en: dist\MiAppoderado\MiAppoderado.exe
 pause

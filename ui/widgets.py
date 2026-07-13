@@ -5,7 +5,7 @@ widgets.py — Reusable custom widgets
 from PyQt6.QtWidgets import (
     QPushButton, QLabel, QWidget, QVBoxLayout,
     QHBoxLayout, QFrame, QSizePolicy, QStackedWidget,
-    QLineEdit, QGraphicsOpacityEffect
+    QLineEdit, QGraphicsOpacityEffect, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import (
     Qt, QPropertyAnimation, QEasingCurve, QTimer,
@@ -69,12 +69,13 @@ class AButton(QPushButton):
 class NavItem(QWidget):
     """
     Single sidebar navigation button.
-    Shows icon (text emoji), label, and an active indicator bar.
+    Shows icon (Lucide SVG, recolored per state), label, and an active
+    indicator bar.
     """
 
     def __init__(self, icon: str, label: str, parent=None):
         super().__init__(parent)
-        self.icon_str  = icon
+        self.icon_str  = icon   # nombre de ícono Lucide, ej. "scan-line"
         self.label_str = label
         self._active   = False
         self.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -92,10 +93,11 @@ class NavItem(QWidget):
         layout.addWidget(self._indicator)
 
         # Icon
-        self._icon_lbl = QLabel(icon)
+        self._icon_lbl = QLabel()
         self._icon_lbl.setFixedWidth(22)
         self._icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._icon_lbl.setStyleSheet(f"font-size: 18px; background: transparent; color: {C.TEXT3};")
+        self._icon_lbl.setStyleSheet("background: transparent;")
+        self._set_icon_color(C.TEXT3)
         layout.addWidget(self._icon_lbl)
 
         # Label
@@ -107,6 +109,13 @@ class NavItem(QWidget):
 
         self._set_hover(False)
 
+    def _set_icon_color(self, color: str):
+        try:
+            from ui.icons import load_pixmap
+            self._icon_lbl.setPixmap(load_pixmap(self.icon_str, color, 18))
+        except Exception:
+            pass  # ícono faltante no debe romper el sidebar
+
     def set_active(self, active: bool):
         self._active = active
         self._set_hover(active)
@@ -116,9 +125,7 @@ class NavItem(QWidget):
             self._indicator.setStyleSheet(
                 f"background: {C.GOLD_500}; border-radius: 2px;"
             )
-            self._icon_lbl.setStyleSheet(
-                f"font-size: 18px; background: transparent; color: {C.TEXT};"
-            )
+            self._set_icon_color(C.TEXT)
             self._label_lbl.setStyleSheet(
                 f"font-size: 13px; font-weight: 600; color: {C.TEXT}; background: transparent;"
             )
@@ -127,9 +134,7 @@ class NavItem(QWidget):
             self._indicator.setStyleSheet(
                 "background: transparent; border-radius: 2px;"
             )
-            self._icon_lbl.setStyleSheet(
-                f"font-size: 18px; background: transparent; color: {C.TEXT3};"
-            )
+            self._set_icon_color(C.TEXT3)
             self._label_lbl.setStyleSheet(
                 f"font-size: 13px; font-weight: 500; color: {C.TEXT2}; background: transparent;"
             )
@@ -191,7 +196,7 @@ class AnimatedStack(QStackedWidget):
 # ═══════════════════════════════════════════════
 
 class StatCard(QFrame):
-    """Small KPI card: big number + label below."""
+    """Small KPI card: big number + label below. Sombra suave, sin borde duro."""
 
     def __init__(self, label: str, value: str = "0",
                  accent: str = C.NAVY_400, parent=None):
@@ -200,11 +205,18 @@ class StatCard(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
                 padding: 0;
             }}
         """)
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(16)
+        shadow.setXOffset(0)
+        shadow.setYOffset(2)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        self.setGraphicsEffect(shadow)
+
         self.setMinimumWidth(100)
 
         layout = QVBoxLayout(self)
@@ -218,6 +230,7 @@ class StatCard(QFrame):
         )
 
         self._label_lbl = QLabel(label.upper())
+        self._label_lbl.setWordWrap(True)
         self._label_lbl.setStyleSheet(
             f"font-size: 10px; font-weight: 600; color: {C.TEXT3}; "
             f"letter-spacing: 0.6px; background: transparent;"
@@ -230,7 +243,7 @@ class StatCard(QFrame):
         self._value_lbl.setText(val)
 
     def flash(self, color: str = None):
-        """Briefly tint the card to signal a new value."""
+        """Briefly tint the card border to signal a new value, then fade to borderless."""
         c = color or self._accent
         self.setStyleSheet(f"""
             QFrame {{
@@ -242,10 +255,95 @@ class StatCard(QFrame):
         QTimer.singleShot(400, lambda: self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """))
+
+
+def _rgba(hex_color: str, alpha: float) -> str:
+    """'#4F8EF7' + 0.15 → 'rgba(79,142,247,0.15)' — fondos suaves de acento."""
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
+class IconStatCard(QFrame):
+    """
+    KPI card con ícono destacado + número grande + etiqueta.
+    Sin borde duro — usa sombra suave para dar profundidad (dirección de
+    diseño: limpio/minimal, íconos como ancla visual en vez de cajas
+    uniformes tipo Word en cada sección).
+    """
+
+    def __init__(self, icon_name: str, label: str, value: str = "—",
+                 accent: str = C.BLUE, parent=None):
+        super().__init__(parent)
+        self._accent = accent
+
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {C.SURFACE};
+                border: none;
+                border-radius: 14px;
+            }}
+        """)
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(20)
+        shadow.setXOffset(0)
+        shadow.setYOffset(3)
+        shadow.setColor(QColor(0, 0, 0, 90))
+        self.setGraphicsEffect(shadow)
+
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(14, 14, 14, 14)
+        lay.setSpacing(12)
+
+        badge = QFrame()
+        badge.setFixedSize(40, 40)
+        badge.setStyleSheet(f"""
+            QFrame {{ background: {_rgba(accent, 0.16)}; border-radius: 10px; border: none; }}
+        """)
+        badge_lay = QVBoxLayout(badge)
+        badge_lay.setContentsMargins(0, 0, 0, 0)
+        icon_lbl = QLabel()
+        try:
+            from ui.icons import load_pixmap
+            icon_lbl.setPixmap(load_pixmap(icon_name, accent, 20))
+        except Exception:
+            pass  # ícono faltante no debe romper la pantalla
+        icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon_lbl.setStyleSheet("background: transparent;")
+        badge_lay.addWidget(icon_lbl)
+        lay.addWidget(badge)
+
+        text_col = QVBoxLayout()
+        text_col.setSpacing(1)
+        self._value_lbl = QLabel(value)
+        self._value_lbl.setStyleSheet(
+            f"font-size: 21px; font-weight: 800; color: {C.TEXT}; background: transparent;"
+        )
+        self._label_lbl = QLabel(label)
+        self._label_lbl.setWordWrap(True)
+        self._label_lbl.setStyleSheet(
+            f"font-size: 11px; font-weight: 500; color: {C.TEXT2}; background: transparent;"
+        )
+        text_col.addWidget(self._value_lbl)
+        text_col.addWidget(self._label_lbl)
+        lay.addLayout(text_col, stretch=1)
+
+    def set_value(self, val: str):
+        self._value_lbl.setText(val)
+
+    def flash(self, color: str = None):
+        """Breve pulso de color en el badge del ícono para señalar un cambio."""
+        c = color or self._accent
+        self._value_lbl.setStyleSheet(
+            f"font-size: 21px; font-weight: 800; color: {c}; background: transparent;"
+        )
+        QTimer.singleShot(500, lambda: self._value_lbl.setStyleSheet(
+            f"font-size: 21px; font-weight: 800; color: {C.TEXT}; background: transparent;"
+        ))
 
 
 # ═══════════════════════════════════════════════
@@ -253,15 +351,20 @@ class StatCard(QFrame):
 # ═══════════════════════════════════════════════
 
 class SectionHeader(QLabel):
-    """Small uppercase section title."""
+    """
+    Small uppercase section title — a step brighter/larger than StatCard's
+    own caption label, on purpose: they used to share the exact same size/
+    color/weight, which made a group heading ("Capacidad") visually
+    indistinguishable from an individual card's label ("Activos") under it.
+    """
     def __init__(self, text: str, parent=None):
         super().__init__(text.upper(), parent)
         self.setStyleSheet(f"""
             QLabel {{
-                color: {C.TEXT3};
-                font-size: 10px;
+                color: {C.TEXT2};
+                font-size: 11px;
                 font-weight: 700;
-                letter-spacing: 1px;
+                letter-spacing: 1.2px;
                 padding: 0 4px;
                 background: transparent;
             }}

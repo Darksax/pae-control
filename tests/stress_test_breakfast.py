@@ -1,5 +1,5 @@
 """
-stress_test_breakfast.py — Monday-morning simulation for PAE Control.
+stress_test_breakfast.py — Monday-morning simulation for MiAppoderado.
 
 First meal of the day is the HEAVIEST logic path: for every scanned student,
 detectar_ausencias_previas() checks the whole previous day (3 COUNT queries +

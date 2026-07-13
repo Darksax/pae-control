@@ -1,5 +1,5 @@
 """
-theme.py — Sistema de diseño PAE Control
+theme.py — Sistema de diseño MiAppoderado
 Palette: Liceo Bicentenario Héroes de la Concepción
 Style:   macOS Sequoia dark · institutional navy + blue
 """
@@ -12,7 +12,7 @@ from PyQt6.QtCore import (
     QAbstractAnimation, pyqtProperty, QObject, pyqtSignal
 )
 from PyQt6.QtGui import QColor, QPalette, QFont
-from PyQt6.QtWidgets import QGraphicsOpacityEffect, QWidget, QApplication
+from PyQt6.QtWidgets import QGraphicsOpacityEffect, QGraphicsDropShadowEffect, QWidget, QApplication
 
 
 # ═══════════════════════════════════════════════
@@ -55,6 +55,8 @@ class C:
     SIDEBAR_INDICATOR = "#4F8EF7"
 
     # ── Legacy aliases (para compatibilidad con screens existentes)
+    # A propósito NO cambian entre temas — son un acento de marca fijo,
+    # no parte de la superficie/fondo que sí varía con light/dark/pride.
     NAVY_950  = "#001A40"
     NAVY_900  = "#002966"
     NAVY_800  = "#003D8F"
@@ -62,6 +64,77 @@ class C:
     NAVY_600  = "#2D6FD9"
     NAVY_400  = "#7AADFF"
     NAVY_300  = "#A8C8FF"
+
+
+# ═══════════════════════════════════════════════
+#  TEMAS — Dark / Light / Pride Month
+# ═══════════════════════════════════════════════
+# Solo las claves listadas aquí varían por tema; todo lo demás en C
+# (semánticos de marca como GOLD_*, y los NAVY_* legacy) se mantiene fijo.
+
+_PALETTES = {
+    "dark": {
+        "BG": "#0F172A", "SURFACE": "#1E293B", "SURFACE2": "#293548", "SURFACE3": "#334565",
+        "BORDER": "#2D3F58", "BORDER2": "#3D5070",
+        "TEXT": "#F1F5FF", "TEXT2": "#6B90B0", "TEXT3": "#4A6A88",
+        "GREEN": "#23D96B", "GREEN_DIM": "#0A2218",
+        "RED": "#FF4545", "RED_DIM": "#280A0A",
+        "AMBER": "#F5A823", "AMBER_DIM": "#251A05",
+        "BLUE": "#4F8EF7", "BLUE_DIM": "#0E1E48",
+        "SIDEBAR_BG": "#0B1524", "SIDEBAR_ACTIVE": "#334565", "SIDEBAR_HOVER": "#293548",
+        "SIDEBAR_INDICATOR": "#4F8EF7",
+    },
+    "light": {
+        "BG": "#F3F5FA", "SURFACE": "#FFFFFF", "SURFACE2": "#EEF1F8", "SURFACE3": "#E1E7F2",
+        "BORDER": "#DCE1EC", "BORDER2": "#C7CEE0",
+        "TEXT": "#111827", "TEXT2": "#57647D", "TEXT3": "#8993A8",
+        "GREEN": "#0F9D52", "GREEN_DIM": "#E3F7EC",
+        "RED": "#DC2626", "RED_DIM": "#FCE8E8",
+        "AMBER": "#B4790A", "AMBER_DIM": "#FCF0DC",
+        "BLUE": "#2563EB", "BLUE_DIM": "#E6EDFC",
+        "SIDEBAR_BG": "#111827", "SIDEBAR_ACTIVE": "#29314A", "SIDEBAR_HOVER": "#1B2337",
+        "SIDEBAR_INDICATOR": "#2563EB",
+    },
+    "pride": {
+        # Base oscura para mantener legibilidad; los acentos toman los
+        # colores de la bandera del Orgullo (rojo·naranjo·amarillo·verde·
+        # azul·violeta) en vez de la paleta institucional azul/verde/rojo.
+        "BG": "#140F1E", "SURFACE": "#201934", "SURFACE2": "#2C2248", "SURFACE3": "#3A2D5E",
+        "BORDER": "#413264", "BORDER2": "#54407E",
+        "TEXT": "#FBF7FF", "TEXT2": "#B9A9DC", "TEXT3": "#8D7AB2",
+        "GREEN": "#22C55E", "GREEN_DIM": "#0C2A18",
+        "RED": "#FF4D5E", "RED_DIM": "#2E0A10",
+        "AMBER": "#FFC93C", "AMBER_DIM": "#2E2408",
+        "BLUE": "#4FA8F5", "BLUE_DIM": "#0E2540",
+        "SIDEBAR_BG": "#180F26", "SIDEBAR_ACTIVE": "#3D2C60", "SIDEBAR_HOVER": "#281B42",
+        "SIDEBAR_INDICATOR": "#FF4D5E",
+    },
+}
+
+THEME_LABELS = {"dark": "Oscuro", "light": "Claro", "pride": "Pride Month"}
+
+
+def available_themes() -> list[str]:
+    return list(_PALETTES.keys())
+
+
+def set_theme(name: str):
+    """Muta los atributos de C con la paleta elegida. No repinta widgets ya
+    construidos por sí solo — quien llama debe reconstruir la ventana
+    (ver MainWindow.apply_theme_change) para que el cambio se vea."""
+    palette = _PALETTES.get(name, _PALETTES["dark"])
+    for key, value in palette.items():
+        setattr(C, key, value)
+
+
+def current_theme() -> str:
+    import db
+    return db.get_config("theme_mode", "dark")
+
+
+def init_theme_from_config():
+    """Aplica el tema guardado — llamar una vez al arrancar, antes de apply_theme()."""
+    set_theme(current_theme())
 
 
 # ═══════════════════════════════════════════════
@@ -74,7 +147,7 @@ def global_stylesheet() -> str:
     QMainWindow, QWidget {{
         background: {C.BG};
         color: {C.TEXT};
-        font-family: -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI",
+        font-family: "Inter", -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI",
                      Arial, sans-serif;
         font-size: 13px;
         line-height: 1.4;
@@ -708,16 +781,28 @@ class SavedIndicator(QLabel):
 from PyQt6.QtWidgets import QFrame, QVBoxLayout
 
 class Card(QFrame):
+    """
+    Card base compartida (usada por reports_screen, inspectoria_screen, etc).
+    Sin borde duro — sombra suave para dar profundidad, mismo lenguaje visual
+    que el resto del rediseño (dirección: limpio/minimal).
+    """
     def __init__(self, parent=None, elevated: bool = False):
         super().__init__(parent)
         bg = C.SURFACE2 if elevated else C.SURFACE
         self.setStyleSheet(f"""
             QFrame {{
                 background: {bg};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(18)
+        shadow.setXOffset(0)
+        shadow.setYOffset(3)
+        shadow.setColor(QColor(0, 0, 0, 80))
+        self.setGraphicsEffect(shadow)
+
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(16, 16, 16, 16)
         self._layout.setSpacing(10)

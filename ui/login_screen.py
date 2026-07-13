@@ -1,5 +1,5 @@
 """
-login_screen.py — Pantalla de login con PIN para PAE Control.
+login_screen.py — Pantalla de login con PIN para MiAppoderado.
 
 Diseño dark navy profesional:
   · Panel oscuro con gradiente de profundidad
@@ -49,7 +49,7 @@ class LoginScreen(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("PAE Control — Iniciar sesión")
+        self.setWindowTitle("MiAppoderado — Iniciar sesión")
         self.setMinimumSize(460, 560)
         self.resize(480, 600)
         self.setModal(True)
@@ -97,7 +97,7 @@ class LoginScreen(QDialog):
             hdr.addWidget(logo)
             hdr.addSpacing(8)
 
-        title = QLabel("PAE Control")
+        title = QLabel("MiAppoderado")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet(
             f"font-size: 22px; font-weight: 700; color: {_TEXT}; background: transparent;"

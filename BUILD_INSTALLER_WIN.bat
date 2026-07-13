@@ -3,7 +3,7 @@ setlocal EnableDelayedExpansion
 
 REM ============================================================================
 REM  BUILD_INSTALLER_WIN.bat
-REM  PAE Control — Build completo: PyInstaller + Inno Setup
+REM  MiAppoderado — Build completo: PyInstaller + Inno Setup
 REM
 REM  Uso: Ejecutar desde la raíz del proyecto en Windows
 REM  Requiere:
@@ -13,7 +13,7 @@ REM ============================================================================
 
 echo.
 echo ============================================================
-echo  PAE Control — Build Pipeline (Windows)
+echo  MiAppoderado — Build Pipeline (Windows)
 echo  Paso 1: PyInstaller  /  Paso 2: Inno Setup
 echo ============================================================
 echo.
@@ -39,7 +39,7 @@ REM ── Paso 1: Compilar .exe con PyInstaller ──────────�
 echo [1/2] Compilando ejecutable con PyInstaller...
 echo.
 
-python -m PyInstaller PAEControl_win.spec --clean --noconfirm
+python -m PyInstaller MiAppoderado_win.spec --clean --noconfirm
 
 if errorlevel 1 (
     echo.
@@ -49,12 +49,12 @@ if errorlevel 1 (
 )
 
 echo.
-echo [OK] Ejecutable generado: dist\PAEControl.exe
+echo [OK] Ejecutable generado: dist\MiAppoderado.exe
 echo.
 
 REM ── Paso 2: Verificar que el .exe existe ─────────────────────────────────────
-if not exist "dist\PAEControl.exe" (
-    echo [ERROR] No se encontro dist\PAEControl.exe
+if not exist "dist\MiAppoderado.exe" (
+    echo [ERROR] No se encontro dist\MiAppoderado.exe
     echo         Verifica el spec file y los errores de PyInstaller.
     pause
     exit /b 1
@@ -101,11 +101,11 @@ echo.
 REM Crear directorio de salida si no existe
 if not exist "dist_installer" mkdir dist_installer
 
-%ISCC% "PAEControl_Setup.iss"
+%ISCC% "MiAppoderado_Setup.iss"
 
 if errorlevel 1 (
     echo.
-    echo [ERROR] Inno Setup fallo. Revisa el archivo PAEControl_Setup.iss.
+    echo [ERROR] Inno Setup fallo. Revisa el archivo MiAppoderado_Setup.iss.
     pause
     exit /b 1
 )
@@ -116,8 +116,8 @@ echo ============================================================
 echo  BUILD COMPLETADO EXITOSAMENTE
 echo ============================================================
 echo.
-echo  Ejecutable:  dist\PAEControl.exe
-echo  Instalador:  dist_installer\PAEControl_Setup_1.4.0-beta.exe
+echo  Ejecutable:  dist\MiAppoderado.exe
+echo  Instalador:  dist_installer\MiAppoderado_Setup_1.4.0-beta.exe
 echo.
 echo  Distribuye el archivo del instalador a los usuarios.
 echo  El .exe en dist\ es solo para pruebas locales.

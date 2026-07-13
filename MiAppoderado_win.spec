@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PAEControl_win.spec — PyInstaller · Windows .exe
-# Uso: pyinstaller PAEControl_win.spec --clean
+# MiAppoderado_win.spec — PyInstaller · Windows .exe
+# Uso: pyinstaller MiAppoderado_win.spec --clean
 #      (o doble clic en BUILD_WIN.bat)
 
 import os
@@ -14,6 +14,10 @@ if Path("assets/AppIcon.ico").exists():
     datas.append(("assets/AppIcon.ico", "assets"))
 if Path("assets/escudo.png").exists():
     datas.append(("assets/escudo.png", "assets"))
+if Path("assets/fonts/Inter.ttf").exists():
+    datas.append(("assets/fonts/Inter.ttf", "assets/fonts"))
+for _icon_svg in Path("assets/icons").glob("*.svg"):
+    datas.append((str(_icon_svg), "assets/icons"))
 
 _supabase_bins    = []
 _supabase_hidden  = []
@@ -30,8 +34,8 @@ except Exception:
 hidden_imports = [
     "PyQt6.QtCore", "PyQt6.QtGui", "PyQt6.QtWidgets",
     "PyQt6.QtWebEngineWidgets", "PyQt6.QtWebEngineCore",
-    "PyQt6.QtNetwork", "PyQt6.sip",
-    "ui.theme", "ui.widgets",
+    "PyQt6.QtNetwork", "PyQt6.QtSvg", "PyQt6.sip",
+    "ui.theme", "ui.widgets", "ui.icons",
     "ui.scan_screen", "ui.students_screen", "ui.reports_screen",
     "ui.bulk_screen", "ui.quotas_screen", "ui.suspensions_screen",
     "ui.junaeb_screen", "ui.config_screen", "ui.import_screen",
@@ -72,7 +76,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="PAEControl",
+    name="MiAppoderado",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

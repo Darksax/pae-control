@@ -1,5 +1,5 @@
 """
-logic.py — Lógica de negocio PAE Control.
+logic.py — Lógica de negocio MiAppoderado.
 
 Resultado del escaneo:
   - "ok"         → verde, ingresa

@@ -1,5 +1,5 @@
 """
-bug_reporter.py — Sistema de reporte de bugs para PAE Control.
+bug_reporter.py — Sistema de reporte de bugs para MiAppoderado.
 
 Flujo:
   · Manual : usuario abre diálogo → describe el problema → Enviar

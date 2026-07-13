@@ -1,17 +1,17 @@
 ; ============================================================================
-;  PAEControl_Setup.iss — Inno Setup Script
-;  PAE Control v1.4.0-beta
+;  MiAppoderado_Setup.iss — Inno Setup Script
+;  MiAppoderado v1.5.0
 ;  Liceo Bicentenario Héroes de la Concepción, Laja, Chile
 ;
 ;  Requiere: Inno Setup 6.x  (https://jrsoftware.org/isinfo.php)
 ;  Ejecutar DESPUÉS de compilar el .exe con BUILD_WIN.bat
 ; ============================================================================
 
-#define AppName      "PAE Control"
-#define AppVersion   "1.4.0-beta"
+#define AppName      "MiAppoderado"
+#define AppVersion   "1.5.0"
 #define AppPublisher "Marcelo Muñoz — Liceo Bicentenario Héroes de la Concepción"
-#define AppURL       "https://github.com/marcelomunoz/paecontrol"
-#define AppExeName   "PAEControl.exe"
+#define AppURL       "https://github.com/marcelomunoz/miappoderado"
+#define AppExeName   "MiAppoderado.exe"
 #define AppIcon      "assets\AppIcon.ico"
 #define LicenseFile  "assets\license_es.txt"
 
@@ -28,13 +28,13 @@ AppPublisher={#AppPublisher}
 AppCopyright=Copyright (C) 2026 Marcelo Octavio Félix Muñoz Lizama
 
 ; --- Directorio de instalación ---
-DefaultDirName={autopf}\PAEControl
+DefaultDirName={autopf}\MiAppoderado
 DefaultGroupName={#AppName}
 AllowNoIcons=no
 
 ; --- Salida ---
 OutputDir=dist_installer
-OutputBaseFilename=PAEControl_Setup_{#AppVersion}
+OutputBaseFilename=MiAppoderado_Setup_{#AppVersion}
 SetupIconFile={#AppIcon}
 
 ; --- Compresión ---
@@ -114,7 +114,7 @@ Filename: "{app}\{#AppExeName}"; Description: "Iniciar {#AppName} ahora"; Flags:
 
 [UninstallDelete]
 ; Eliminar la base de datos local si el usuario desinstala (opcional — comentar si se quiere conservar)
-; Type: files; Name: "{userappdata}\PAEControl\pae.db"
+; Type: files; Name: "{userappdata}\MiAppoderado\pae.db"
 Type: dirifempty; Name: "{app}"
 
 [Code]
@@ -130,7 +130,7 @@ begin
   // Página de bienvenida institucional adicional
   WelcomePage := CreateCustomPage(
     wpWelcome,
-    'PAE Control — Sistema de Gestión PAE',
+    'MiAppoderado — Sistema de Gestión PAE',
     'Información del sistema'
   );
 
@@ -145,7 +145,7 @@ begin
     AutoSize := False;
     WordWrap := True;
     Caption :=
-      'PAE Control es un sistema de gestión del Programa de Alimentación ' +
+      'MiAppoderado es un sistema de gestión del Programa de Alimentación ' +
       'Escolar (PAE) desarrollado para el Liceo Bicentenario Héroes de la ' +
       'Concepción, Laja, Chile.' + #13#10 + #13#10 +
       'Este software permite:' + #13#10 +
@@ -154,7 +154,7 @@ begin
       '  • Control de atrasos e inasistencias (módulo Inspectoría)' + #13#10 +
       '  • Sincronización en la nube con Supabase' + #13#10 +
       '  • Generación de reportes y estadísticas' + #13#10 + #13#10 +
-      'Versión: 1.4.0-beta' + #13#10 +
+      'Versión: 1.5.0' + #13#10 +
       'Desarrollado por: Marcelo Octavio Félix Muñoz Lizama' + #13#10 +
       'Institución: Liceo Bicentenario Héroes de la Concepción, RBD 14421' + #13#10 + #13#10 +
       'Requerimientos mínimos: Windows 10 (64-bit) versión 1809 o superior.' + #13#10 +
@@ -173,7 +173,7 @@ begin
   if (Version.Major < 10) then
   begin
     MsgBox(
-      'PAE Control requiere Windows 10 o superior.' + #13#10 +
+      'MiAppoderado requiere Windows 10 o superior.' + #13#10 +
       'Su sistema operativo no es compatible.',
       mbError, MB_OK
     );

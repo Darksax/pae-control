@@ -1,5 +1,5 @@
 """
-inspectoria_screen.py — Pantalla principal de Inspectoría PAE Control
+inspectoria_screen.py — Pantalla principal de Inspectoría MiAppoderado
 
 Tabs:
   1. Atrasos      — scanner RUN + stats + notificación WA
@@ -66,7 +66,7 @@ class _NameSearch(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)
@@ -191,7 +191,7 @@ class _StudentCard(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -531,7 +531,7 @@ class _PaseTab(QWidget):
         frame.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 10px;
             }}
         """)
@@ -621,7 +621,7 @@ class _PaseTab(QWidget):
         frame.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 10px;
             }}
         """)
@@ -727,7 +727,7 @@ class _PaseTab(QWidget):
             fila.setStyleSheet(f"""
                 QFrame {{
                     background: {C.SURFACE2};
-                    border: 1px solid {C.BORDER};
+                    border: none;
                     border-radius: 7px;
                 }}
             """)
@@ -1002,7 +1002,7 @@ class _PaseTab(QWidget):
                 fecha_lbl = f"{_DIAS[d.weekday()]} {d.day} de {_MESES[d.month-1]} de {d.year}"
             except Exception:
                 fecha_lbl = fecha_iso
-            establecimiento = db.get_config("nombre_establecimiento", "PAE Control")
+            establecimiento = db.get_config("nombre_establecimiento", "MiAppoderado")
             contenido = thermal_print.generar_pase(
                 run=utils.run_display(run),
                 nombre=nombre,

@@ -1,5 +1,5 @@
 """
-config_screen.py — Configuración PAE Control 0.9 Alpha
+config_screen.py — Configuración MiAppoderado 0.9 Alpha
 
 - QTimeEdit para horarios (sin texto libre, formato siempre válido)
 - QComboBox para valores categóricos
@@ -37,7 +37,7 @@ class MealRow(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE2};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)
@@ -177,7 +177,7 @@ class ConfigScreen(QWidget):
         gen_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 16px;
             }}
         """)
@@ -220,7 +220,7 @@ class ConfigScreen(QWidget):
         scan_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 16px;
             }}
         """)
@@ -288,12 +288,12 @@ class ConfigScreen(QWidget):
 
         root.addWidget(scan_card)
 
-        # ── Clima y noticias card ─────────────────────
+        # ── Clima card ─────────────────────
         wx_card = QFrame()
         wx_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 16px;
             }}
         """)
@@ -301,7 +301,7 @@ class ConfigScreen(QWidget):
         wx_lay.setContentsMargins(20, 18, 20, 18)
         wx_lay.setSpacing(14)
 
-        wx_lay.addWidget(SectionHeader("Clima y noticias (toolbar)"))
+        wx_lay.addWidget(SectionHeader("Clima (toolbar)"))
 
         chk_style2 = (
             f"QCheckBox {{ color: {C.TEXT2}; font-size: 13px; "
@@ -379,81 +379,6 @@ class ConfigScreen(QWidget):
         # Resultado de geocoding temporal (para la opción seleccionada)
         self._pending_geo: dict = {}   # {"lat":..., "lon":..., "city":...}
 
-        wx_lay.addWidget(HDivider())
-
-        # ── Noticias ─────────────────────────────────
-        self._chk_news_ticker = QCheckBox("Mostrar ticker de noticias de educación")
-        self._chk_news_ticker.setStyleSheet(chk_style2)
-        self._chk_news_ticker.setToolTip("Barra scrolling debajo del toolbar")
-        self._chk_news_ticker.stateChanged.connect(self._on_field_changed)
-        wx_lay.addWidget(self._chk_news_ticker)
-
-        # Fuente RSS
-        lbl_rss = QLabel("Fuente RSS:")
-        lbl_rss.setStyleSheet(f"color: {C.TEXT2}; font-size: 13px; background: transparent;")
-        wx_lay.addWidget(lbl_rss)
-
-        _NEWS_PRESETS = [
-            ("Google News Chile — Educación (recomendado)",
-             "https://news.google.com/rss/search?q=educaci%C3%B3n+chile&hl=es-CL&gl=CL&ceid=CL:es"),
-            ("Emol — Educación",
-             "https://www.emol.com/rss/Educacion.xml"),
-            ("BioBío Chile — Educación",
-             "https://www.biobiochile.cl/lista/categorias/educacion/feed"),
-            ("MINEDUC",
-             "https://www.mineduc.cl/feed/"),
-            ("Personalizado (pegar URL RSS abajo)", ""),
-        ]
-        self._news_presets = _NEWS_PRESETS
-
-        news_src_row = QHBoxLayout()
-        self._cmb_news_src = QComboBox()
-        self._cmb_news_src.setStyleSheet(f"""
-            QComboBox {{
-                background: {C.SURFACE2}; border: 1.5px solid {C.BORDER};
-                border-radius: 8px; padding: 5px 10px;
-                color: {C.TEXT}; font-size: 13px;
-            }}
-            QComboBox::drop-down {{ border: none; }}
-            QComboBox QAbstractItemView {{
-                background: {C.SURFACE}; border: 1.5px solid {C.BORDER};
-                selection-background-color: {C.BLUE_DIM};
-                selection-color: {C.BLUE};
-                font-size: 13px; color: {C.TEXT};
-            }}
-        """)
-        for label, _ in _NEWS_PRESETS:
-            self._cmb_news_src.addItem(label)
-        self._cmb_news_src.currentIndexChanged.connect(self._on_news_src_changed)
-        self._cmb_news_src.currentIndexChanged.connect(self._on_field_changed)
-        news_src_row.addWidget(self._cmb_news_src, stretch=1)
-
-        btn_reload_news = AButton("⟳ Recargar noticias", sound_type="click")
-        btn_reload_news.setFixedHeight(32)
-        btn_reload_news.setStyleSheet(f"""
-            QPushButton {{
-                background: {C.SURFACE2}; color: {C.TEXT2};
-                border: 1.5px solid {C.BORDER}; border-radius: 8px;
-                padding: 0 12px; font-size: 12px;
-            }}
-            QPushButton:hover {{ background: {C.SURFACE3}; color: {C.TEXT}; }}
-        """)
-        btn_reload_news.clicked.connect(self._reload_news_now)
-        news_src_row.addWidget(btn_reload_news)
-        wx_lay.addLayout(news_src_row)
-
-        # URL personalizada (visible solo cuando se elige "Personalizado")
-        self._inp_news_custom = QLineEdit()
-        self._inp_news_custom.setPlaceholderText("Pegar URL de feed RSS aquí…")
-        self._inp_news_custom.setStyleSheet(
-            f"QLineEdit {{ background: {C.SURFACE2}; border: 1.5px solid {C.BORDER}; "
-            f"border-radius: 8px; padding: 6px 10px; color: {C.TEXT}; font-size: 13px; }}"
-            f"QLineEdit:focus {{ border-color: {C.BLUE}; }}"
-        )
-        self._inp_news_custom.textChanged.connect(self._on_field_changed)
-        self._inp_news_custom.hide()
-        wx_lay.addWidget(self._inp_news_custom)
-
         root.addWidget(wx_card)
 
         # ── Meal schedule card ────────────────────────
@@ -461,7 +386,7 @@ class ConfigScreen(QWidget):
         meal_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 16px;
             }}
         """)
@@ -492,7 +417,7 @@ class ConfigScreen(QWidget):
             wa_card.setStyleSheet(f"""
                 QFrame {{
                     background: {C.SURFACE};
-                    border: 1.5px solid {C.BORDER};
+                    border: none;
                     border-radius: 14px;
                 }}
             """)
@@ -568,12 +493,75 @@ class ConfigScreen(QWidget):
 
             root.addWidget(wa_card)
 
+        # ── Asistente IA (Gemini) — solo admin ────────
+        if _sess.is_admin():
+            from PyQt6.QtWidgets import QTextEdit as _QTE
+
+            ai_card = QFrame()
+            ai_card.setStyleSheet(f"""
+                QFrame {{
+                    background: {C.SURFACE};
+                    border: none;
+                    border-radius: 14px;
+                }}
+            """)
+            ai_lay = QVBoxLayout(ai_card)
+            ai_lay.setContentsMargins(20, 16, 20, 16)
+            ai_lay.setSpacing(10)
+            ai_lay.addWidget(SectionHeader("Asistente IA (Gemini) — dudas de reglamento y uso de la app"))
+
+            hint_ai = QLabel(
+                "Consíguela gratis en aistudio.google.com/apikey. El reglamento "
+                "que pegues abajo es lo único que el asistente usa para responder "
+                "preguntas de reglas — si lo dejas vacío, avisa que falta configurarlo "
+                "en vez de inventar una respuesta."
+            )
+            hint_ai.setWordWrap(True)
+            hint_ai.setStyleSheet(f"font-size: 11px; color: {C.TEXT3}; background: transparent;")
+            ai_lay.addWidget(hint_ai)
+
+            lbl_key = QLabel("CLAVE API GEMINI")
+            lbl_key.setStyleSheet(
+                f"font-size: 10px; font-weight: 700; letter-spacing: 0.6px; "
+                f"color: {C.TEXT2}; background: transparent;"
+            )
+            self._gemini_key = QLineEdit()
+            self._gemini_key.setPlaceholderText("AIzaSy...")
+            self._gemini_key.setEchoMode(QLineEdit.EchoMode.Password)
+            self._gemini_key.textChanged.connect(self._on_field_changed)
+            ai_lay.addWidget(lbl_key)
+            ai_lay.addWidget(self._gemini_key)
+
+            lbl_reg = QLabel("TEXTO DEL REGLAMENTO DEL LICEO")
+            lbl_reg.setStyleSheet(
+                f"font-size: 10px; font-weight: 700; letter-spacing: 0.6px; "
+                f"color: {C.TEXT2}; background: transparent;"
+            )
+            self._gemini_reglamento = _QTE()
+            self._gemini_reglamento.setFixedHeight(140)
+            self._gemini_reglamento.setPlaceholderText(
+                "Pega aquí el texto completo del reglamento interno / de convivencia del liceo…"
+            )
+            self._gemini_reglamento.setStyleSheet(f"""
+                QTextEdit {{
+                    background: {C.SURFACE2}; color: {C.TEXT};
+                    border: 1.5px solid {C.BORDER2}; border-radius: 8px;
+                    padding: 8px 10px; font-size: 12.5px;
+                }}
+                QTextEdit:focus {{ border-color: {C.BLUE}; }}
+            """)
+            self._gemini_reglamento.textChanged.connect(self._on_field_changed)
+            ai_lay.addWidget(lbl_reg)
+            ai_lay.addWidget(self._gemini_reglamento)
+
+            root.addWidget(ai_card)
+
         # ── Impresora Térmica ─────────────────────────
         printer_card = QFrame()
         printer_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -733,7 +721,7 @@ class ConfigScreen(QWidget):
             users_card.setStyleSheet(f"""
                 QFrame {{
                     background: {C.SURFACE};
-                    border: 1.5px solid {C.BORDER};
+                    border: none;
                     border-radius: 14px;
                 }}
             """)
@@ -797,7 +785,7 @@ class ConfigScreen(QWidget):
             bug_card.setStyleSheet(f"""
                 QFrame {{
                     background: {C.SURFACE};
-                    border: 1.5px solid {C.BORDER};
+                    border: none;
                     border-radius: 14px;
                 }}
             """)
@@ -953,7 +941,6 @@ class ConfigScreen(QWidget):
             self._spin_submit_delay[1], self._spin_autoreset_default[1],
             self._chk_flash, self._chk_ausencias, self._chk_doble_sonido,
             self._chk_historial, self._chk_weather, self._inp_weather_city,
-            self._chk_news_ticker, self._cmb_news_src, self._inp_news_custom,
         ]
         for w in widgets:
             w.blockSignals(True)
@@ -977,7 +964,7 @@ class ConfigScreen(QWidget):
         self._chk_historial.setChecked(
             cfg.get("scan_show_historial", "1") == "1")
 
-        # ── Clima y noticias ──────────────────────────
+        # ── Clima ──────────────────────────
         self._chk_weather.setChecked(
             cfg.get("weather_enabled", "1") == "1")
         city = cfg.get("weather_city", "Laja")
@@ -988,24 +975,6 @@ class ConfigScreen(QWidget):
             self._lbl_city_status.setText(f"✓ {city}  ({lat}, {lon})")
             self._lbl_city_status.setStyleSheet(
                 f"color: {C.GREEN}; font-size: 11px; background: transparent;")
-        self._chk_news_ticker.setChecked(
-            cfg.get("news_ticker_enabled", "1") == "1")
-
-        # Fuente RSS seleccionada
-        saved_url = cfg.get("news_rss_url", "")
-        preset_urls = [url for _, url in self._news_presets]
-        if saved_url and saved_url in preset_urls:
-            idx = preset_urls.index(saved_url)
-        elif saved_url:
-            # URL personalizada
-            idx = len(self._news_presets) - 1  # "Personalizado"
-            self._inp_news_custom.setText(saved_url)
-            self._inp_news_custom.show()
-        else:
-            idx = 0  # Google News por defecto
-        self._cmb_news_src.setCurrentIndex(idx)
-        # Mostrar/ocultar URL personalizada según índice
-        self._inp_news_custom.setVisible(idx == len(self._news_presets) - 1)
 
         # ── WhatsApp (si admin y widgets existen)
         if hasattr(self, "_wa_phone_id"):
@@ -1018,6 +987,15 @@ class ConfigScreen(QWidget):
             self._wa_phone_id.blockSignals(False)
             self._wa_token.blockSignals(False)
             self._wa_plantilla.blockSignals(False)
+
+        # ── Asistente IA (si admin y widgets existen)
+        if hasattr(self, "_gemini_key"):
+            self._gemini_key.blockSignals(True)
+            self._gemini_reglamento.blockSignals(True)
+            self._gemini_key.setText(cfg.get("gemini_api_key", ""))
+            self._gemini_reglamento.setPlainText(cfg.get("gemini_reglamento", ""))
+            self._gemini_key.blockSignals(False)
+            self._gemini_reglamento.blockSignals(False)
 
         # ── Impresora Térmica
         self._inp_printer.blockSignals(True)
@@ -1068,7 +1046,7 @@ class ConfigScreen(QWidget):
             db.set_config("scan_show_historial",
                           "1" if self._chk_historial.isChecked() else "0")
 
-            # ── Clima y noticias ──────────────────────
+            # ── Clima ──────────────────────
             db.set_config("weather_enabled",
                           "1" if self._chk_weather.isChecked() else "0")
             # Si hay un resultado confirmado de geocoding, guardarlo
@@ -1082,22 +1060,16 @@ class ConfigScreen(QWidget):
                 if city_val:
                     db.set_config("weather_city", city_val)
 
-            db.set_config("news_ticker_enabled",
-                          "1" if self._chk_news_ticker.isChecked() else "0")
-
-            # URL del feed RSS
-            idx = self._cmb_news_src.currentIndex()
-            if idx == len(self._news_presets) - 1:   # "Personalizado"
-                rss_url = self._inp_news_custom.text().strip()
-            else:
-                rss_url = self._news_presets[idx][1]
-            db.set_config("news_rss_url", rss_url)
-
             # ── WhatsApp credentials (si admin y widgets existen)
             if hasattr(self, "_wa_phone_id"):
                 db.set_config("wa_phone_id",   self._wa_phone_id.text().strip())
                 db.set_config("wa_token",       self._wa_token.text().strip())
                 db.set_config("wa_plantilla",   self._wa_plantilla.text().strip())
+
+            # ── Asistente IA (si admin y widgets existen)
+            if hasattr(self, "_gemini_key"):
+                db.set_config("gemini_api_key",    self._gemini_key.text().strip())
+                db.set_config("gemini_reglamento", self._gemini_reglamento.toPlainText().strip())
 
             # ── Impresora Térmica
             db.set_config("thermal_printer",    self._inp_printer.text().strip())
@@ -1235,7 +1207,7 @@ class ConfigScreen(QWidget):
         def _do():
             try:
                 import thermal_print
-                estab = db.get_config("nombre_establecimiento", "PAE Control")
+                estab = db.get_config("nombre_establecimiento", "MiAppoderado")
                 contenido = thermal_print.generar_ticket_prueba(estab)
                 ok, msg = thermal_print.imprimir(contenido)
 
@@ -1468,20 +1440,10 @@ class ConfigScreen(QWidget):
         db.set_config("weather_lat",  geo["lat"])
         db.set_config("weather_lon",  geo["lon"])
 
-    def _on_news_src_changed(self, idx: int):
-        is_custom = (idx == len(self._news_presets) - 1)
-        self._inp_news_custom.setVisible(is_custom)
-
     def _reload_weather_now(self):
         mw = self.window()
         if hasattr(mw, "reload_weather"):
             mw.reload_weather()
-
-    def _reload_news_now(self):
-        self._commit_save()
-        mw = self.window()
-        if hasattr(mw, "reload_news"):
-            mw.reload_news()
 
     def _geocode_city(self, city: str):
         pass  # reemplazado por autocomplete

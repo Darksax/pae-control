@@ -1,5 +1,5 @@
 """
-startup_screen.py — Diálogo "Novedades / Qué hay de nuevo" de PAE Control.
+startup_screen.py — Diálogo "Novedades / Qué hay de nuevo" de MiAppoderado.
 
 Se muestra automáticamente al iniciar si la versión instalada es nueva.
 También abre desde el botón ? en la toolbar.
@@ -24,7 +24,7 @@ class StartupDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"Novedades · PAE Control {pn.VERSION}")
+        self.setWindowTitle(f"Novedades · MiAppoderado {pn.VERSION}")
         self.setMinimumWidth(660)
         self.setMaximumWidth(800)
         self.setMinimumHeight(480)
@@ -68,7 +68,7 @@ class StartupDialog(QDialog):
         lay.addSpacing(14)
 
         # Nombre app + versión
-        name = QLabel("PAE Control")
+        name = QLabel("MiAppoderado")
         name.setStyleSheet(
             f"font-size: 30px; font-weight: 800; color: {C.TEXT}; background: transparent;"
         )

@@ -1,5 +1,5 @@
 """
-quotas_screen.py — Cupos variables por día · PAE Control 0.9 Alpha
+quotas_screen.py — Cupos variables por día · MiAppoderado 0.9 Alpha
 
 Permite:
   - Ver cupos efectivos por fecha (override o default de config)
@@ -77,7 +77,7 @@ class QuotasScreen(QWidget):
         cal_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -166,7 +166,7 @@ class QuotasScreen(QWidget):
         edit_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)

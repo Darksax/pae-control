@@ -1,5 +1,5 @@
 """
-sync.py — Sincronización Supabase para PAE Control
+sync.py — Sincronización Supabase para MiAppoderado
 
 Estrategia: Local-first con cloud backup.
   - Push: sube students (upsert), registros y strikes nuevos (incremental por fecha).
@@ -209,6 +209,37 @@ def push_suspensions(client, desde: Optional[str] = None,
 
 
 # ─────────────────────────────────────────────────────────
+#  CONFIG COMPARTIDA (asistente IA)
+# ─────────────────────────────────────────────────────────
+# A diferencia del resto de la tabla config (tokens de WhatsApp, SMTP, la
+# propia clave de Supabase — nunca se sincronizan, ver push_* arriba),
+# estas dos claves SÍ se comparten a propósito entre todas las instalaciones
+# de MiAppoderado vía una tabla dedicada, para no tener que pegar el mismo
+# reglamento/clave de Gemini a mano en cada equipo.
+SHARED_CONFIG_KEYS = ["gemini_api_key", "gemini_reglamento"]
+
+
+def push_shared_config(client) -> int:
+    now = datetime.now().isoformat(timespec="seconds")
+    rows = [
+        {"key": k, "value": db.get_config(k, ""), "updated_at": now}
+        for k in SHARED_CONFIG_KEYS
+    ]
+    return _upsert_batched(client, "shared_config", rows)
+
+
+def pull_shared_config(client) -> int:
+    resp = client.table("shared_config").select("*").execute()
+    rows = resp.data or []
+    n = 0
+    for r in rows:
+        if r.get("key") in SHARED_CONFIG_KEYS:
+            db.set_config(r["key"], r.get("value") or "")
+            n += 1
+    return n
+
+
+# ─────────────────────────────────────────────────────────
 #  PULL
 # ─────────────────────────────────────────────────────────
 
@@ -273,6 +304,9 @@ def sync_all(push_only: bool = False) -> dict:
         # ── Detección de tabla 'usuarios' ────────────────────────────────
         has_usuarios_table = _supabase_has_column(client, "usuarios", "id")
 
+        # ── Detección de tabla 'shared_config' (asistente IA) ────────────
+        has_shared_config_table = _supabase_has_column(client, "shared_config", "key")
+
         # ── Detección de columna 'periodo' ──────────────────────────────
         reg_has_periodo = _supabase_has_column(client, "registros",           "periodo")
         sus_has_periodo = _supabase_has_column(client, "student_suspensions", "periodo")
@@ -294,6 +328,9 @@ def sync_all(push_only: bool = False) -> dict:
         if not has_usuarios_table:
             migration_warnings.append("usuarios (tabla nueva)")
             migration_sqls.append(USUARIOS_SCHEMA_SQL)
+        if not has_shared_config_table:
+            migration_warnings.append("shared_config (tabla nueva — asistente IA)")
+            migration_sqls.append(SHARED_CONFIG_SCHEMA_SQL)
 
         # ── Push ────────────────────────────────────────────────────────
         n_stu  = push_students(client)
@@ -302,12 +339,15 @@ def sync_all(push_only: bool = False) -> dict:
         n_str  = push_strikes(client, last_sync, has_periodo=str_has_periodo)
         n_log  = push_status_log(client, last_sync)
         n_sus  = push_suspensions(client, last_sync, has_periodo=sus_has_periodo)
+        n_shared_push = push_shared_config(client) if has_shared_config_table else 0
         n_pull_stu = 0
         n_pull_usu = 0
+        n_shared_pull = 0
 
         if not push_only:
             n_pull_stu = pull_students(client)
             n_pull_usu = pull_usuarios(client) if has_usuarios_table else 0
+            n_shared_pull = pull_shared_config(client) if has_shared_config_table else 0
 
         now = datetime.now().isoformat(timespec="seconds")
         db.set_config("supabase_last_sync", now)
@@ -322,6 +362,8 @@ def sync_all(push_only: bool = False) -> dict:
             "suspensions_subidas":   n_sus,
             "students_bajados":      n_pull_stu,
             "usuarios_bajados":      n_pull_usu,
+            "asistente_config_subido":  n_shared_push,
+            "asistente_config_bajado":  n_shared_pull,
             "timestamp":             now,
         }
 
@@ -342,7 +384,7 @@ def sync_all(push_only: bool = False) -> dict:
 
 SCHEMA_SQL = """\
 -- ╔══════════════════════════════════════════════╗
--- ║  PAE Control — Tablas Supabase               ║
+-- ║  MiAppoderado — Tablas Supabase               ║
 -- ║  Pega este SQL en el SQL Editor de Supabase  ║
 -- ╚══════════════════════════════════════════════╝
 
@@ -426,18 +468,27 @@ CREATE TABLE IF NOT EXISTS student_suspensions (
     periodo      TEXT DEFAULT ''
 );
 
+-- Config compartida entre instalaciones (SOLO clave de Gemini + reglamento,
+-- a propósito — el resto de config, ej. tokens de WhatsApp/SMTP, nunca sube)
+CREATE TABLE IF NOT EXISTS shared_config (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL DEFAULT '',
+    updated_at TEXT DEFAULT ''
+);
+
 -- Desactiva RLS (ajusta políticas según tu configuración de seguridad)
 ALTER TABLE students             DISABLE ROW LEVEL SECURITY;
 ALTER TABLE registros            DISABLE ROW LEVEL SECURITY;
 ALTER TABLE strikes              DISABLE ROW LEVEL SECURITY;
 ALTER TABLE status_log           DISABLE ROW LEVEL SECURITY;
 ALTER TABLE student_suspensions  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE shared_config        DISABLE ROW LEVEL SECURITY;
 """
 
 # SQL para migrar un Supabase existente (tablas ya creadas, faltan columnas)
 MIGRATION_SQL = """\
 -- ╔══════════════════════════════════════════════════════════╗
--- ║  PAE Control — Migración incremental Supabase            ║
+-- ║  MiAppoderado — Migración incremental Supabase            ║
 -- ║  Ejecutar en SQL Editor si las tablas ya existen         ║
 -- ╚══════════════════════════════════════════════════════════╝
 
@@ -468,7 +519,7 @@ ALTER TABLE strikes
 
 # SQL específico para agregar la columna periodo (mostrado en UI cuando falta)
 PERIODO_MIGRATION_SQL = """\
--- PAE Control v1.4.0-beta — Agregar columna periodo
+-- MiAppoderado v1.4.0-beta — Agregar columna periodo
 -- Pega esto en el SQL Editor de Supabase y ejecuta:
 
 ALTER TABLE registros
@@ -483,7 +534,7 @@ ALTER TABLE strikes
 
 # SQL para crear la tabla de usuarios en Supabase (mostrado en UI cuando falta)
 USUARIOS_SCHEMA_SQL = """\
--- PAE Control v1.4.0-beta — Crear tabla usuarios
+-- MiAppoderado v1.4.0-beta — Crear tabla usuarios
 -- Pega esto en el SQL Editor de Supabase y ejecuta:
 
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -496,4 +547,18 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 ALTER TABLE usuarios DISABLE ROW LEVEL SECURITY;
+"""
+
+# SQL para crear la tabla shared_config en Supabase (mostrado en UI cuando falta)
+SHARED_CONFIG_SCHEMA_SQL = """\
+-- MiAppoderado — Crear tabla shared_config (asistente IA)
+-- Pega esto en el SQL Editor de Supabase y ejecuta:
+
+CREATE TABLE IF NOT EXISTS shared_config (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL DEFAULT '',
+    updated_at TEXT DEFAULT ''
+);
+
+ALTER TABLE shared_config DISABLE ROW LEVEL SECURITY;
 """

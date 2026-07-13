@@ -1,4 +1,4 @@
-# Tests de carga — PAE Control
+# Tests de carga — MiAppoderado
 
 Simulan la fila del lunes ejecutando `logic.procesar_scan()` (el mismo código
 que dispara el escáner) contra una **COPIA** de la base de datos. La base real

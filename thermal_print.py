@@ -263,7 +263,7 @@ def generar_preview_texto(
     return "\n".join(lines)
 
 
-def generar_ticket_prueba(establecimiento: str = "PAE Control") -> bytes:
+def generar_ticket_prueba(establecimiento: str = "MiAppoderado") -> bytes:
     """Ticket mínimo para probar conexión de impresora."""
     buf = bytearray()
     buf.extend(INIT)

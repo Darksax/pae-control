@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 PYTHON="/Library/Frameworks/Python.framework/Versions/3.14/bin/python3.14"
 LOG="debug.log"
 
-echo "── Corriendo PAE Control (Python directo)…"
+echo "── Corriendo MiAppoderado (Python directo)…"
 echo "── Log en: $(pwd)/$LOG"
 echo ""
 

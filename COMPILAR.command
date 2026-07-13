@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Doble clic en Finder → abre Terminal y compila PAE Control.app
+# Doble clic en Finder → abre Terminal y compila MiAppoderado.app
 
 cd "$(dirname "$0")"
 
 echo ""
 echo "╔══════════════════════════════════════════╗"
-echo "║        PAE Control — Compilando…         ║"
+echo "║        MiAppoderado — Compilando…         ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 
@@ -41,14 +41,14 @@ echo ""
 
 # Compilar
 echo "── Compilando (1–3 min)…"
-$PYTHON -m PyInstaller PAEControl.spec --noconfirm
+$PYTHON -m PyInstaller MiAppoderado.spec --noconfirm
 
-APP="dist/PAE Control.app"
+APP="dist/MiAppoderado.app"
 if [ -d "$APP" ]; then
     SIZE=$(du -sh "$APP" | cut -f1)
     echo ""
     echo "╔══════════════════════════════════════════╗"
-    echo "║  ✅  PAE Control.app listo en dist/       ║"
+    echo "║  ✅  MiAppoderado.app listo en dist/       ║"
     printf  "║      Tamaño: %-28s ║\n" "$SIZE"
     echo "╚══════════════════════════════════════════╝"
     echo ""

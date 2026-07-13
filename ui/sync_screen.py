@@ -1,5 +1,5 @@
 """
-sync_screen.py — Pantalla de sincronización Supabase PAE Control
+sync_screen.py — Pantalla de sincronización Supabase MiAppoderado
 
 Permite configurar credenciales, verificar la conexión y lanzar sync.
 El sync corre en QThread para no bloquear la UI.
@@ -97,7 +97,7 @@ class SyncScreen(QWidget):
         creds_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -146,7 +146,7 @@ class SyncScreen(QWidget):
         sync_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -187,7 +187,7 @@ class SyncScreen(QWidget):
         sql_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)

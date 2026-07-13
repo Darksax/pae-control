@@ -1,5 +1,5 @@
 """
-bulk_screen.py — Registro Masivo por Curso · PAE Control 0.9 Alpha
+bulk_screen.py — Registro Masivo por Curso · MiAppoderado 0.9 Alpha
 
 Flujo:
   1. Selector: curso + comida + fecha
@@ -151,7 +151,7 @@ class BulkScreen(QWidget):
         sel_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)

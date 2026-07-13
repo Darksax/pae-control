@@ -1,5 +1,5 @@
 """
-main.py — Punto de entrada PAE Control.
+main.py — Punto de entrada MiAppoderado.
 """
 
 import sys
@@ -31,10 +31,10 @@ except Exception:
 # ── 3. Imports normales de la app ───────────────────────────────────────────
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore    import QTimer
-from PyQt6.QtGui     import QIcon
+from PyQt6.QtGui     import QIcon, QFontDatabase
 
 import db
-from ui.theme       import apply_theme
+from ui.theme       import apply_theme, init_theme_from_config
 from ui.main_window import MainWindow
 import patchnotes as pn
 
@@ -61,7 +61,7 @@ def _maybe_show_startup(window: MainWindow):
 def main():
     logger.info("Creando QApplication...")
     app = QApplication(sys.argv)
-    app.setApplicationName("PAE Control")
+    app.setApplicationName("MiAppoderado")
     app.setApplicationVersion(pn.VERSION)
     app.setOrganizationName("Liceo Bicentenario")
     debug_mode.attach_qt()
@@ -71,11 +71,19 @@ def main():
     if os.path.exists(_ico_path):
         app.setWindowIcon(QIcon(_ico_path))
 
-    logger.info("Aplicando tema...")
-    apply_theme(app)
+    # ── Fuente Inter (SIL OFL — ver assets/fonts/Inter-OFL.txt) ────────────
+    # Debe registrarse DESPUÉS de crear QApplication (QFontDatabase la
+    # necesita) y ANTES de apply_theme() (el stylesheet global la referencia).
+    _font_path = os.path.join(BASE_DIR, "assets", "fonts", "Inter.ttf")
+    if os.path.exists(_font_path):
+        QFontDatabase.addApplicationFont(_font_path)
 
     logger.info("Inicializando base de datos...")
     db.init_db()
+
+    logger.info("Aplicando tema...")
+    init_theme_from_config()   # lee theme_mode guardado — necesita db.init_db() ya corrido
+    apply_theme(app)
 
     # ── Login con PIN ───────────────────────────────────────────────────────
     logger.info("Mostrando pantalla de login...")

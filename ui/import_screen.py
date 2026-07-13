@@ -1,5 +1,5 @@
 """
-import_screen.py — Importación PAE / SIGE · PAE Control 0.9 Alpha
+import_screen.py — Importación PAE / SIGE · MiAppoderado 0.9 Alpha
 
 Flujo:
   1. Drag-and-drop o botón → selección de archivo

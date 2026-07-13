@@ -1,5 +1,5 @@
 """
-session.py — Sesión de usuario activa en PAE Control.
+session.py — Sesión de usuario activa en MiAppoderado.
 En memoria únicamente. Se pierde al cerrar la app.
 
 Períodos:

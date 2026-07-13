@@ -4,7 +4,7 @@
 
 cd "$(dirname "$0")"
 echo "==================================================="
-echo "  PAE Control — Instalar supabase-py"
+echo "  MiAppoderado — Instalar supabase-py"
 echo "==================================================="
 echo ""
 
@@ -31,7 +31,7 @@ echo "Instalando supabase-py..."
 if [ $? -eq 0 ]; then
     echo ""
     echo "✓ supabase-py instalado correctamente."
-    echo "  Reinicia PAE Control y usa la pantalla Sync Supabase."
+    echo "  Reinicia MiAppoderado y usa la pantalla Sync Supabase."
 else
     echo ""
     echo "✗ Error durante la instalación."

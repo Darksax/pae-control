@@ -1,5 +1,5 @@
 """
-junaeb_screen.py — Módulo JUNAEB / Menú semanal PAE Control 0.9 Alpha
+junaeb_screen.py — Módulo JUNAEB / Menú semanal MiAppoderado 0.9 Alpha
 
 Navegador embebido para consultar el sitio JUNAEB:
   - Acceso rápido a páginas clave (PAE, minutas, región Biobío)
@@ -57,7 +57,7 @@ class _FallbackWidget(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 16px;
             }}
         """)
@@ -129,7 +129,7 @@ class _NavBar(QFrame):
         self.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)
@@ -287,7 +287,7 @@ class JunaebScreen(QWidget):
             web_frame.setStyleSheet(f"""
                 QFrame {{
                     background: {C.SURFACE};
-                    border: 1.5px solid {C.BORDER};
+                    border: none;
                     border-radius: 12px;
                 }}
             """)

@@ -26,6 +26,17 @@ ALTER TABLE student_suspensions
 ALTER TABLE student_suspensions
     ADD COLUMN IF NOT EXISTS firmado_por TEXT    DEFAULT '';
 
+-- ── 3. shared_config: clave de Gemini + reglamento compartidos entre
+--    todas las instalaciones de PAE Control (asistente IA). A propósito
+--    NO incluye el resto de la tabla config local (tokens WhatsApp/SMTP,
+--    la propia clave de Supabase) — esas nunca se sincronizan.
+CREATE TABLE IF NOT EXISTS shared_config (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL DEFAULT '',
+    updated_at TEXT DEFAULT ''
+);
+ALTER TABLE shared_config DISABLE ROW LEVEL SECURITY;
+
 -- ── Verificar resultado ───────────────────────────────────────────────────────
 SELECT column_name, data_type, column_default
 FROM   information_schema.columns

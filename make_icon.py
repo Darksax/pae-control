@@ -1,5 +1,5 @@
 """
-make_icon.py — Genera assets/AppIcon.icns para PAE Control
+make_icon.py — Genera assets/AppIcon.icns para MiAppoderado
 Requiere: pillow  (pip install pillow)
 Uso:       python3 make_icon.py
 """
@@ -9,16 +9,17 @@ import sys
 import subprocess
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 except ImportError:
     print("Instalando pillow…")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "pillow"])
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
 
 
-BG_COLOR = (0, 122, 255)   # #007AFF
+# Paleta institucional de la app (ver ui/theme.py) — azul de marca de fondo,
+# glifo en blanco para máximo contraste y legibilidad a 16×16.
+BG_COLOR = (79, 142, 247)     # C.BLUE "#4F8EF7"
 FG_COLOR = (255, 255, 255)
-LABEL    = "PAE"
 
 ICONSET_MAP = {
     "icon_16x16.png":      16,
@@ -33,27 +34,14 @@ ICONSET_MAP = {
     "icon_512x512@2x.png": 1024,
 }
 
-FONT_PATHS = [
-    "/System/Library/Fonts/Helvetica.ttc",
-    "/System/Library/Fonts/HelveticaNeue.ttc",
-    "/System/Library/Fonts/SFNSDisplay.ttf",
-    "/System/Library/Fonts/SFNSText.ttf",
-    "/System/Library/Fonts/Arial.ttf",
-    "/Library/Fonts/Arial.ttf",
-]
-
-
-def _load_font(size: int):
-    for path in FONT_PATHS:
-        if os.path.exists(path):
-            try:
-                return ImageFont.truetype(path, size)
-            except Exception:
-                pass
-    return None
-
 
 def draw_icon(size: int) -> Image.Image:
+    """
+    Glifo minimalista de 'apoderado/guardián': cabeza + hombros en blanco
+    sobre fondo azul institucional, mismo lenguaje visual que los íconos
+    Lucide usados en el resto de la app (trazo simple, sin texto, legible
+    incluso a 16×16 donde el texto ya no se lee).
+    """
     img  = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
@@ -61,27 +49,37 @@ def draw_icon(size: int) -> Image.Image:
     draw.rounded_rectangle([0, 0, size - 1, size - 1],
                            radius=radius, fill=BG_COLOR)
 
-    if size < 32:
-        return img
+    cx = size / 2
 
-    font_size = max(8, int(size * 0.30))
-    font = _load_font(font_size)
+    # Cabeza
+    head_r  = size * 0.145
+    head_cy = size * 0.375
+    draw.ellipse(
+        [cx - head_r, head_cy - head_r, cx + head_r, head_cy + head_r],
+        fill=FG_COLOR
+    )
 
-    if font is None:
-        # Sin TrueType: posición manual aproximada
-        draw.text((int(size * 0.20), int(size * 0.35)), LABEL, fill=FG_COLOR)
-        return img
-
+    # Hombros — rectángulo con esquinas superiores redondeadas, esquinas
+    # inferiores rectas (se recortan contra el borde del ícono)
+    body_w      = size * 0.50
+    body_top    = size * 0.565
+    body_bottom = size * 0.85
     try:
-        bbox = draw.textbbox((0, 0), LABEL, font=font)
-        tw = bbox[2] - bbox[0]
-        th = bbox[3] - bbox[1]
-        x  = (size - tw) / 2 - bbox[0]
-        y  = (size - th) / 2 - bbox[1]
-        draw.text((x, y), LABEL, font=font, fill=FG_COLOR)
-    except Exception:
-        draw.text((int(size * 0.20), int(size * 0.35)), LABEL,
-                  font=font, fill=FG_COLOR)
+        draw.rounded_rectangle(
+            [cx - body_w / 2, body_top, cx + body_w / 2, body_bottom],
+            radius=body_w / 2, fill=FG_COLOR,
+            corners=(True, True, False, False),
+        )
+    except TypeError:
+        # Pillow < 9.2 no soporta 'corners' — fallback: pieslice + rect
+        draw.pieslice(
+            [cx - body_w / 2, body_top, cx + body_w / 2, body_top + body_w],
+            180, 360, fill=FG_COLOR
+        )
+        draw.rectangle(
+            [cx - body_w / 2, body_top + body_w / 2, cx + body_w / 2, body_bottom],
+            fill=FG_COLOR
+        )
 
     return img
 

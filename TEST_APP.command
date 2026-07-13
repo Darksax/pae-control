@@ -6,10 +6,10 @@
 
 cd "$(dirname "$0")"
 
-APP_BIN="dist/PAE Control.app/Contents/MacOS/PAE Control"
+APP_BIN="dist/MiAppoderado.app/Contents/MacOS/MiAppoderado"
 
 if [ ! -f "$APP_BIN" ]; then
-    echo "ERROR: No existe dist/PAE Control.app — compila primero con BUILD_MAC.command"
+    echo "ERROR: No existe dist/MiAppoderado.app — compila primero con BUILD_MAC.command"
     read -p "Presiona Enter para salir..."
     exit 1
 fi
@@ -19,7 +19,7 @@ TS=$(date +%Y%m%d_%H%M%S)
 LOG="logs/test_${TS}.log"
 
 echo "╔══════════════════════════════════════════╗"
-echo "║   TEST PAE Control (sin instalar)        ║"
+echo "║   TEST MiAppoderado (sin instalar)        ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 echo "Log de esta sesión: $LOG"

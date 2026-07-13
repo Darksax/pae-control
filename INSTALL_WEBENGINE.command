@@ -4,7 +4,7 @@
 
 cd "$(dirname "$0")"
 echo "==================================================="
-echo "  PAE Control — Instalar PyQt6-WebEngine"
+echo "  MiAppoderado — Instalar PyQt6-WebEngine"
 echo "==================================================="
 echo ""
 
@@ -48,7 +48,7 @@ fi
 if [ $RESULT -eq 0 ]; then
     echo ""
     echo "✓ PyQt6-WebEngine instalado correctamente."
-    echo "  Reinicia PAE Control para activar el visor JUNAEB."
+    echo "  Reinicia MiAppoderado para activar el visor JUNAEB."
 else
     echo ""
     echo "✗ Error durante la instalación."

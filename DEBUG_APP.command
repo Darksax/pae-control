@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Corre PAE Control con output visible para ver el error de crash
+# Corre MiAppoderado con output visible para ver el error de crash
 cd "$(dirname "$0")"
 
-echo "── Corriendo PAE Control (modo debug) …"
+echo "── Corriendo MiAppoderado (modo debug) …"
 echo ""
 
-EXE="dist/PAE Control.app/Contents/MacOS/PAE Control"
+EXE="dist/MiAppoderado.app/Contents/MacOS/MiAppoderado"
 
 if [ ! -f "$EXE" ]; then
     echo "✗  No se encontró el ejecutable: $EXE"

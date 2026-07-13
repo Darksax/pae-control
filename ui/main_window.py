@@ -1,24 +1,10 @@
 """
-main_window.py — Ventana principal PAE Control 0.9 Alpha
+main_window.py — Ventana principal MiAppoderado 0.9 Alpha
 macOS Sonoma dark · Liceo Bicentenario palette
 """
 
 from datetime import date
 import threading
-import urllib.request
-import urllib.parse
-import json
-import ssl
-from xml.etree import ElementTree as ET
-
-# macOS: Python no siempre tiene el bundle de certificados del sistema.
-# ssl.create_default_context() se crea sin errores pero FALLA al conectar con
-# CERTIFICATE_VERIFY_FAILED si los certs no están instalados.
-# Para APIs públicas de solo lectura (clima, noticias, geocoding) usamos
-# contexto sin verificación de certificado — no hay datos sensibles en tránsito.
-def _ssl_ctx():
-    ctx = ssl._create_unverified_context()
-    return ctx
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
@@ -44,6 +30,7 @@ from ui.junaeb_screen       import JunaebScreen
 from ui.config_screen       import ConfigScreen
 from ui.import_screen       import ImportScreen
 from ui.sync_screen         import SyncScreen
+from ui.assistant_widget    import AssistantOverlay
 
 import db
 import utils
@@ -51,120 +38,22 @@ import session
 
 
 
-class _NewsTicker(QWidget):
-    """Barra de noticias scrolling — ticker estilo bursátil."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setFixedHeight(26)
-        self._text     = "Cargando noticias de educación…"
-        self._prefix   = "  EDUCACIÓN  ▶  "
-        self._offset   = 0.0
-        self._text_w   = 0
-        self._prefix_w = 0
-        self._ready    = False        # True una vez que tenemos font metrics
-
-        self._timer = QTimer(self)
-        self._timer.setInterval(20)   # 50 fps
-        self._timer.timeout.connect(self._tick)
-        self._timer.start()
-
-    def _init_metrics(self):
-        """Calcula anchos con la fuente real del widget. Llamar tras show."""
-        from PyQt6.QtGui import QFont, QFontMetrics
-        fm_bold = QFontMetrics(QFont(self.font().family(), -1, QFont.Weight.Bold))
-        fm_bold.setPointSize = None   # ignorar — usar pixelSize
-        f_bold = QFont(self.font())
-        f_bold.setBold(True)
-        f_bold.setPixelSize(11)
-        f_norm = QFont(f_bold)
-        f_norm.setBold(False)
-        self._prefix_w = QFontMetrics(f_bold).horizontalAdvance(self._prefix)
-        self._text_w   = QFontMetrics(f_norm).horizontalAdvance(self._text + "            ")
-        self._offset   = float(self.width())
-        self._ready    = True
-
-    def showEvent(self, event):
-        super().showEvent(event)
-        if not self._ready:
-            self._init_metrics()
-
-    def set_text(self, text: str):
-        """Llamar desde hilo principal después de fetch."""
-        from PyQt6.QtGui import QFont, QFontMetrics
-        self._text = text + "            "
-        f_bold = QFont(self.font())
-        f_bold.setBold(True)
-        f_bold.setPixelSize(11)
-        f_norm = QFont(f_bold)
-        f_norm.setBold(False)
-        self._prefix_w = QFontMetrics(f_bold).horizontalAdvance(self._prefix)
-        self._text_w   = QFontMetrics(f_norm).horizontalAdvance(self._text)
-        self._offset   = float(self.width())
-        self._ready    = True
-        self.update()
-
-    def _tick(self):
-        if not self._ready:
-            return
-        self._offset -= 1.4
-        if self._text_w > 0 and self._offset < -self._text_w:
-            self._offset = float(self.width())
-        self.update()
-
-    def paintEvent(self, event):
-        if not self._ready:
-            self._init_metrics()
-
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
-        p.setClipRect(self.rect())
-
-        # Fondo + borde inferior
-        p.fillRect(self.rect(), QColor(C.SURFACE))
-        p.setPen(QColor(C.BORDER))
-        p.drawLine(0, self.height() - 1, self.width(), self.height() - 1)
-
-        y = int(self.height() * 0.74)
-
-        from PyQt6.QtGui import QFont
-        # Prefijo estático "EDUCACIÓN ▶" en azul
-        f_bold = QFont(self.font())
-        f_bold.setBold(True)
-        f_bold.setPixelSize(11)
-        p.setFont(f_bold)
-        p.setPen(QColor(C.BLUE))
-        p.drawText(4, y, self._prefix)
-
-        # Texto scrolling
-        f_norm = QFont(f_bold)
-        f_norm.setBold(False)
-        p.setFont(f_norm)
-        p.setPen(QColor(C.TEXT2))
-
-        x = int(self._prefix_w + 4 + self._offset)
-        p.drawText(x, y, self._text)
-        if self._text_w > 0:
-            p.drawText(x + self._text_w, y, self._text)   # copia para loop continuo
-        p.end()
-
-
 # ── Nav config: (key, icon, label, screen_class, roles_permitidos)
 # pae         → Escaneo, Registro masivo, Cupos, JUNAEB, Estudiantes (solo RSH)
 # inspectoria → Inspectoría (atrasos/pases/licencias), Estudiantes (nombre/curso/tel, sin RSH)
 # admin       → todo
 _ALL_NAV = [
-    ("scan",        "▷", "Escaneo",           ScanScreen,         ["pae", "admin"]),
-    ("inspectoria", "◎", "Inspectoría",       InspectoriaScreen,  ["inspectoria", "admin"]),
-    ("suspensions", "◈", "Pases (legacy)",    SuspensionsScreen,  ["admin"]),
-    ("students",    "≡", "Estudiantes",       StudentsScreen,     ["pae", "inspectoria", "admin"]),
-    ("bulk",        "⊞", "Registro masivo",   BulkScreen,         ["pae", "admin"]),
-    ("quotas",      "▦", "Cupos por día",     QuotasScreen,       ["pae", "admin"]),
-    ("junaeb",      "◉", "Menú JUNAEB",       JunaebScreen,       ["pae", "admin"]),
-    ("reports",     "▤", "Reportes",          ReportsScreen,      ["admin", "pae", "inspectoria"]),
-    ("import",      "⇧", "Importar",          ImportScreen,       ["admin"]),
-    ("sync",        "↻", "Sync Supabase",     SyncScreen,         ["admin"]),
-    ("config",      "⚙", "Configuración",     ConfigScreen,       ["admin"]),
+    ("scan",        "scan-line",     "Escaneo",           ScanScreen,         ["pae", "admin"]),
+    ("inspectoria", "shield-check",  "Inspectoría",       InspectoriaScreen,  ["inspectoria", "admin"]),
+    ("suspensions", "ticket",        "Pases (legacy)",    SuspensionsScreen,  ["admin"]),
+    ("students",    "users",        "Estudiantes",       StudentsScreen,     ["pae", "inspectoria", "admin"]),
+    ("bulk",        "list-checks",   "Registro masivo",   BulkScreen,         ["pae", "admin"]),
+    ("quotas",      "calendar-days", "Cupos por día",     QuotasScreen,       ["pae", "admin"]),
+    ("junaeb",      "utensils",      "Menú JUNAEB",       JunaebScreen,       ["pae", "admin"]),
+    ("reports",     "chart-column",  "Reportes",          ReportsScreen,      ["admin", "pae", "inspectoria"]),
+    ("import",      "upload",        "Importar",          ImportScreen,       ["admin"]),
+    ("sync",        "refresh-cw",    "Sync Supabase",     SyncScreen,         ["admin"]),
+    ("config",      "settings",      "Configuración",     ConfigScreen,       ["admin"]),
 ]
 
 
@@ -229,7 +118,7 @@ class Sidebar(QFrame):
         text_col.setSpacing(2)
         text_col.setContentsMargins(0, 0, 0, 0)
 
-        title = QLabel("PAE Control")
+        title = QLabel("MiAppoderado")
         title.setStyleSheet(
             f"font-size: 15px; font-weight: 700; color: {C.TEXT}; background: transparent;"
         )
@@ -300,7 +189,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(
-            db.get_config("nombre_establecimiento", "PAE Control") + " — PAE Control"
+            db.get_config("nombre_establecimiento", "MiAppoderado") + " — MiAppoderado"
         )
         self.setMinimumSize(1160, 700)
         self.resize(1280, 760)
@@ -310,12 +199,6 @@ class MainWindow(QMainWindow):
         self._check_alerta_semana()
         # Check remoto de updates: 3 segundos después del render
         QTimer.singleShot(3000, self._start_update_check)
-        # Noticias: fetch inicial a los 4s, luego cada 30 min
-        QTimer.singleShot(4000, self._fetch_news)
-        self._news_refresh = QTimer(self)
-        self._news_refresh.setInterval(30 * 60 * 1000)
-        self._news_refresh.timeout.connect(self._fetch_news)
-        self._news_refresh.start()
         # WhatsApp: reintentar mensajes pendientes cada 60s
         import whatsapp as _wa
         self._wa_retry_timer = _wa.iniciar_retry_timer(60_000)
@@ -336,13 +219,6 @@ class MainWindow(QMainWindow):
         tb_sep.setFixedHeight(1)
         tb_sep.setStyleSheet(f"background: {C.BORDER}; border: none;")
         root.addWidget(tb_sep)
-
-        # ── News ticker (debajo del toolbar) ─────────
-        self._news_ticker = _NewsTicker()
-        self._news_ticker.setVisible(
-            db.get_config("news_ticker_enabled", "1") == "1"
-        )
-        root.addWidget(self._news_ticker)
 
         # ── Main area (sidebar + content) ───────────
         content_row = QWidget()
@@ -383,6 +259,20 @@ class MainWindow(QMainWindow):
         if first_key:
             self._nav(first_key)
 
+        # ── Asistente IA (overlay flotante, sobre toda pantalla activa) ──
+        # reposition() depende de central.width()/height(), que todavía no
+        # tienen su valor final en este punto del __init__ (el primer layout
+        # real ocurre recién cuando el event loop procesa el show() de la
+        # ventana) — se difiere con singleShot(0, …) para que corra después.
+        self._assistant = AssistantOverlay(central)
+        self._assistant.show()
+        QTimer.singleShot(0, self._assistant.reposition)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, "_assistant"):
+            self._assistant.reposition()
+
     def _build_toolbar(self) -> QFrame:
         """Barra superior: clima · stats · reloj — sin accesos rápidos (están en el sidebar)."""
         bar = QFrame()
@@ -394,7 +284,7 @@ class MainWindow(QMainWindow):
         lay.setSpacing(6)
 
         # ── Nombre del establecimiento (izquierda) ───
-        nombre_est = db.get_config("nombre_establecimiento", "PAE Control")
+        nombre_est = db.get_config("nombre_establecimiento", "MiAppoderado")
         name_lbl = QLabel(nombre_est)
         name_lbl.setStyleSheet(
             f"font-size: 12px; font-weight: 700; color: {C.TEXT}; "
@@ -414,8 +304,8 @@ class MainWindow(QMainWindow):
         lay.addStretch()
 
         # ── Stats chips ──────────────────────────────
-        self._tb_chip_pae = self._stat_chip_tb("—", "PAE activos", C.GREEN)
-        self._tb_chip_alm = self._stat_chip_tb("—", "Almuerzos hoy", C.BLUE)
+        self._tb_chip_pae = self._stat_chip_tb("—", "PAE activos", C.GREEN, icon_name="users")
+        self._tb_chip_alm = self._stat_chip_tb("—", "Almuerzos hoy", C.BLUE, icon_name="utensils")
         lay.addWidget(self._tb_chip_pae)
         lay.addSpacing(6)
         lay.addWidget(self._tb_chip_alm)
@@ -523,6 +413,27 @@ class MainWindow(QMainWindow):
         lay.addWidget(_vsep())
         lay.addSpacing(6)
 
+        # ── Selector de tema (Oscuro/Claro/Pride Month) ──
+        from ui.icons import load_icon
+        self._theme_btn = QPushButton()
+        self._theme_btn.setFixedSize(30, 30)
+        self._theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._theme_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.SURFACE2};
+                border: 1px solid {C.BORDER};
+                border-radius: 7px;
+            }}
+            QPushButton:hover {{ background: {C.SURFACE3}; border-color: {C.BORDER2}; }}
+        """)
+        self._theme_btn.clicked.connect(self._open_theme_selector)
+        self._refresh_theme_btn()
+        lay.addWidget(self._theme_btn)
+        lay.addSpacing(4)
+
+        lay.addWidget(_vsep())
+        lay.addSpacing(6)
+
         # ── Reloj en vivo ────────────────────────────
         self._clock_lbl = QLabel()
         self._clock_lbl.setStyleSheet(
@@ -545,7 +456,7 @@ class MainWindow(QMainWindow):
         return bar
 
     @staticmethod
-    def _stat_chip_tb(value: str, label: str, color: str) -> QFrame:
+    def _stat_chip_tb(value: str, label: str, color: str, icon_name: str = "") -> QFrame:
         chip = QFrame()
         chip.setStyleSheet(f"""
             QFrame {{
@@ -559,8 +470,14 @@ class MainWindow(QMainWindow):
         lay.setContentsMargins(8, 3, 8, 3)
         lay.setSpacing(5)
 
-        dot = QLabel("●")
-        dot.setStyleSheet(f"color: {color}; font-size: 7px; background: transparent;")
+        if icon_name:
+            from ui.icons import load_pixmap
+            dot = QLabel()
+            dot.setPixmap(load_pixmap(icon_name, color, 12))
+        else:
+            dot = QLabel("●")
+            dot.setStyleSheet(f"color: {color}; font-size: 7px;")
+        dot.setStyleSheet(dot.styleSheet() + " background: transparent;")
 
         val = QLabel(value)
         val.setObjectName("chipval")
@@ -651,6 +568,56 @@ class MainWindow(QMainWindow):
         menu.exec(self._period_btn.mapToGlobal(
             self._period_btn.rect().bottomLeft()
         ))
+
+    # ─────────────────────────────────────────────
+    #  Tema — Oscuro / Claro / Pride Month
+    # ─────────────────────────────────────────────
+
+    _THEME_ICONS = {"dark": "moon", "light": "sun", "pride": "sparkles"}
+
+    def _refresh_theme_btn(self):
+        from ui.icons import load_icon
+        from ui.theme import current_theme, THEME_LABELS
+        actual = current_theme()
+        icon_name = self._THEME_ICONS.get(actual, "moon")
+        self._theme_btn.setIcon(load_icon(icon_name, C.TEXT2, 16))
+        self._theme_btn.setToolTip(f"Tema: {THEME_LABELS.get(actual, actual)}")
+
+    def _open_theme_selector(self):
+        from PyQt6.QtWidgets import QMenu
+        from ui.theme import available_themes, current_theme, THEME_LABELS
+        from ui.icons import load_icon
+
+        menu = QMenu(self)
+        actual = current_theme()
+        for name in available_themes():
+            action = menu.addAction(load_icon(self._THEME_ICONS.get(name, "moon"), C.TEXT2, 16),
+                                     THEME_LABELS.get(name, name))
+            action.setCheckable(True)
+            action.setChecked(name == actual)
+            action.triggered.connect(lambda _, n=name: self._switch_theme(n))
+
+        menu.exec(self._theme_btn.mapToGlobal(
+            self._theme_btn.rect().bottomLeft()
+        ))
+
+    def _switch_theme(self, name: str):
+        """Guarda el tema elegido y reconstruye la ventana para aplicarlo —
+        cambiar los colores de C no repinta por sí solo los widgets que ya
+        fijaron su stylesheet con los valores viejos al construirse."""
+        if name == db.get_config("theme_mode", "dark"):
+            return
+        db.set_config("theme_mode", name)
+
+        from ui.theme import set_theme, apply_theme
+        from PyQt6.QtWidgets import QApplication
+        set_theme(name)
+        apply_theme(QApplication.instance())
+
+        self.close()
+        new_win = MainWindow()
+        new_win.show()
+        self._new_win_ref = new_win   # evitar garbage collection
 
     def _set_viewing_period(self, periodo: str):
         """Cambia el período visualizado y refresca la pantalla activa."""
@@ -794,87 +761,6 @@ class MainWindow(QMainWindow):
         else:
             self._btn_novedades.setText("⚠ Error en descarga")
             self._btn_novedades.setEnabled(True)
-
-    # ─────────────────────────────────────────────
-    #  Clima & noticias
-    # ─────────────────────────────────────────────
-
-    def reload_news(self):
-        """Llamar desde ConfigScreen para recargar noticias inmediatamente."""
-        self._fetch_news()
-
-    def _fetch_news(self):
-        """Lanza fetch de noticias de educación en background.
-        Fuente primaria: Google News RSS Chile (sin API key, muy fiable).
-        Fallback: Emol educación.
-        """
-        if db.get_config("news_ticker_enabled", "1") != "1":
-            return
-
-        def _do():
-            headlines = []
-            # Fuente configurada por el usuario (puede ser "custom" o un preset)
-            custom_url = db.get_config("news_rss_url", "")
-            _DEFAULT_FEEDS = [
-                "https://news.google.com/rss/search?q=educaci%C3%B3n+chile&hl=es-CL&gl=CL&ceid=CL:es",
-                "https://www.emol.com/rss/Educacion.xml",
-                "https://www.biobiochile.cl/lista/categorias/educacion/feed",
-            ]
-            feeds = [custom_url] + _DEFAULT_FEEDS if custom_url else _DEFAULT_FEEDS
-            ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) PAEControl/1.1"
-
-            import re as _re
-            for url in feeds:
-                if not url:
-                    continue
-                try:
-                    req = urllib.request.Request(url, headers={"User-Agent": ua})
-                    with urllib.request.urlopen(req, timeout=10, context=_ssl_ctx()) as r:
-                        raw = r.read()
-                    raw_str = raw.decode("utf-8", errors="replace")
-
-                    # Intento 1: xml.etree (falla con algunos CDATA mal formados)
-                    try:
-                        root_el = ET.fromstring(raw)
-                        items = root_el.findall(".//item")
-                        for item in items[:10]:
-                            title = item.findtext("title") or ""
-                            title = _re.sub(r"<[^>]+>", "", title)   # strip HTML tags
-                            title = title.split(" - ")[0].strip()
-                            if title and len(title) > 12:
-                                headlines.append(title)
-                    except ET.ParseError:
-                        # Fallback: regex sobre el texto crudo
-                        found = _re.findall(
-                            r"<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>",
-                            raw_str, _re.DOTALL)
-                        for t in found[1:11]:       # saltar el título del canal
-                            t = _re.sub(r"<[^>]+>", "", t)
-                            t = t.split(" - ")[0].strip()
-                            if t and len(t) > 12:
-                                headlines.append(t)
-
-                    if len(headlines) >= 3:
-                        break
-                except Exception as e:
-                    last_err = f"{type(e).__name__}: {e}"
-                    continue
-
-            if headlines:
-                text = "   ·   ".join(headlines)
-            else:
-                err_info = locals().get("last_err", "sin conexión")
-                text = f"Noticias no disponibles ({err_info})"
-
-            QTimer.singleShot(0, lambda: self._news_ticker.set_text(text))
-
-        threading.Thread(target=_do, daemon=True, name="pae-news").start()
-
-    def reload_ticker_visibility(self):
-        """Llamar desde ConfigScreen al guardar cambios."""
-        self._news_ticker.setVisible(
-            db.get_config("news_ticker_enabled", "1") == "1"
-        )
 
     # ─────────────────────────────────────────────
     #  Friday weekly alert

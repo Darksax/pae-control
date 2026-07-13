@@ -1,5 +1,5 @@
 """
-debug_mode.py — Registro de diagnóstico de PAE Control.
+debug_mode.py — Registro de diagnóstico de MiAppoderado.
 
 SIEMPRE activo (costo cero):
   · faulthandler  →  ~/pae_control/logs/fault.log    (crashes nativos: SIGSEGV, etc.)

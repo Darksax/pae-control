@@ -1,5 +1,5 @@
 """
-db.py — Capa de base de datos para PAE Control
+db.py — Capa de base de datos para MiAppoderado
 SQLite con WAL mode para máximo rendimiento en escaneo.
 """
 
@@ -148,8 +148,7 @@ def init_db():
         "weather_city":            "Laja",
         "weather_lat":             "-37.3572",
         "weather_lon":             "-72.7013",
-        "news_ticker_enabled":     "1",
-        "news_rss_url":            "",
+        "theme_mode":              "dark",
     }
     for k, v in defaults.items():
         c.execute("INSERT OR IGNORE INTO config VALUES (?,?)", (k, v))

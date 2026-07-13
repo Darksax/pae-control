@@ -1,1 +1,1 @@
-# PAE Control UI package
+# MiAppoderado UI package

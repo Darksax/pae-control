@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PAEControl.spec — PyInstaller · macOS .app bundle
-# Uso: pyinstaller PAEControl.spec --clean
+# MiAppoderado.spec — PyInstaller · macOS .app bundle
+# Uso: pyinstaller MiAppoderado.spec --clean
 #      (o doble clic en BUILD_MAC.command)
 #
 # NOTA: QtWebEngineWidgets NO se incluye a propósito.
@@ -9,6 +9,10 @@
 # Esto reduce el tamaño de ~3 GB a ~400 MB.
 
 from pathlib import Path
+import sys
+
+sys.path.insert(0, ".")
+from patchnotes import VERSION as _APP_VERSION   # una sola fuente de verdad para la versión
 
 block_cipher = None
 
@@ -18,6 +22,10 @@ datas = [
 ]
 if Path("assets/escudo.png").exists():
     datas.append(("assets/escudo.png", "assets"))
+if Path("assets/fonts/Inter.ttf").exists():
+    datas.append(("assets/fonts/Inter.ttf", "assets/fonts"))
+for _icon_svg in Path("assets/icons").glob("*.svg"):
+    datas.append((str(_icon_svg), "assets/icons"))
 
 _supabase_bins   = []
 _supabase_hidden = []
@@ -34,9 +42,9 @@ except Exception:
 hidden_imports = [
     # PyQt6 — solo los módulos usados
     "PyQt6.QtCore", "PyQt6.QtGui", "PyQt6.QtWidgets",
-    "PyQt6.QtNetwork", "PyQt6.sip",
+    "PyQt6.QtNetwork", "PyQt6.QtSvg", "PyQt6.sip",
     # Pantallas
-    "ui.theme", "ui.widgets",
+    "ui.theme", "ui.widgets", "ui.icons",
     "ui.scan_screen", "ui.students_screen", "ui.reports_screen",
     "ui.bulk_screen", "ui.quotas_screen", "ui.suspensions_screen",
     "ui.junaeb_screen", "ui.config_screen", "ui.import_screen",
@@ -115,7 +123,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="PAE Control",
+    name="MiAppoderado",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,              # NO hacer strip en Apple Silicon (rompe PAC signatures)
@@ -136,19 +144,19 @@ coll = COLLECT(
     strip=False,              # NO strip en Apple Silicon (rompe PAC signatures)
     upx=False,
     upx_exclude=[],
-    name="PAE Control",
+    name="MiAppoderado",
 )
 
 app = BUNDLE(
     coll,
-    name="PAE Control.app",
+    name="MiAppoderado.app",
     icon="assets/AppIcon.icns",
-    bundle_identifier="cl.laja.paecontrol",
+    bundle_identifier="cl.laja.miappoderado",
     info_plist={
-        "CFBundleName":               "PAE Control",
-        "CFBundleDisplayName":        "PAE Control",
-        "CFBundleShortVersionString": "1.0",
-        "CFBundleVersion":            "1.0.0",
+        "CFBundleName":               "MiAppoderado",
+        "CFBundleDisplayName":        "MiAppoderado",
+        "CFBundleShortVersionString": _APP_VERSION,
+        "CFBundleVersion":            _APP_VERSION,
         "NSHighResolutionCapable":    True,
         "NSRequiresAquaSystemAppearance": False,
         "CFBundleDocumentTypes":      [],

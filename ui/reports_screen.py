@@ -1,5 +1,5 @@
 """
-reports_screen.py — Reportes PAE Control
+reports_screen.py — Reportes MiAppoderado
 
 - KPI cards: registros / strikes / estudiantes afectados
 - Tabs: Top 25 semana / Top 25 mes / Asistencia / Lista de espera / Log altas-bajas

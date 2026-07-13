@@ -1,5 +1,5 @@
 """
-suspensions_screen.py — Justificaciones PAE Control
+suspensions_screen.py — Justificaciones MiAppoderado
 
 Registra suspensiones, licencias médicas, retiros y atrasos.
 Cada tipo excusa las ausencias al PAE en el rango de fechas registrado.
@@ -148,7 +148,7 @@ class _SuspensionTab(QWidget):
         search_bar.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)
@@ -196,7 +196,7 @@ class _SuspensionTab(QWidget):
         right_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -610,7 +610,7 @@ class _SimpleExcusalTab(QWidget):
         search_bar.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)
@@ -661,7 +661,7 @@ class _SimpleExcusalTab(QWidget):
         right_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)
@@ -948,7 +948,7 @@ class _JustificarTab(QWidget):
         search_bar.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 12px;
             }}
         """)
@@ -993,7 +993,7 @@ class _JustificarTab(QWidget):
         right_card.setStyleSheet(f"""
             QFrame {{
                 background: {C.SURFACE};
-                border: 1.5px solid {C.BORDER};
+                border: none;
                 border-radius: 14px;
             }}
         """)

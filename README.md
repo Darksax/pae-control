@@ -1,4 +1,4 @@
-# PAE Control
+# MiAppoderado
 
 Sistema de control de asistencia al comedor escolar (Programa de Alimentación Escolar — PAE), desarrollado para el **Liceo Bicentenario Héroes de la Concepción**, Laja, Chile.
 
@@ -13,12 +13,12 @@ Cada push a `main` compila automáticamente una versión nueva para ambas plataf
 **➜ [github.com/Darksax/pae-control/releases/latest](https://github.com/Darksax/pae-control/releases/latest)**
 
 **Windows** (10 de 64-bit, 1809 o superior):
-- `PAEControl.exe` — versión portable, se ejecuta directo sin instalar.
-- `PAEControl_Setup_*.exe` — instalador con acceso directo en Escritorio e Inicio.
+- `MiAppoderado.exe` — versión portable, se ejecuta directo sin instalar.
+- `MiAppoderado_Setup_*.exe` — instalador con acceso directo en Escritorio e Inicio.
 
 **macOS**:
-- `PAEControl_mac.dmg` — arrastra a Aplicaciones.
-- `PAEControl_mac.zip` — alternativa si el `.dmg` no está disponible en esa build.
+- `MiAppoderado_mac.dmg` — arrastra a Aplicaciones.
+- `MiAppoderado_mac.zip` — alternativa si el `.dmg` no está disponible en esa build.
 
 Ninguna requiere Python instalado.
 
@@ -111,7 +111,7 @@ Corren contra una **copia** de la base de datos real — nunca tocan `~/pae_cont
 
 **Windows**: doble clic en `BUILD_WIN.bat` (requiere Python instalado en esa máquina), o simplemente usa el build automático de GitHub Actions descrito arriba — no hace falta compilar a mano.
 
-El instalador de Windows (`PAEControl_Setup.iss`) se compila con [Inno Setup 6](https://jrsoftware.org/isinfo.php); el workflow de CI ya lo hace solo.
+El instalador de Windows (`MiAppoderado_Setup.iss`) se compila con [Inno Setup 6](https://jrsoftware.org/isinfo.php); el workflow de CI ya lo hace solo.
 
 ---
 

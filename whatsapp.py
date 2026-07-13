@@ -1,5 +1,5 @@
 """
-whatsapp.py — Notificaciones WhatsApp Business para PAE Control.
+whatsapp.py — Notificaciones WhatsApp Business para MiAppoderado.
 
 Usa la Meta WhatsApp Cloud API (oficial).
 Credenciales configuradas en la tabla config de SQLite (nunca hardcodeadas).
@@ -25,7 +25,7 @@ from typing import Optional
 import db
 
 
-# ── SSL context sin verificación (igual que weather/news en main_window)
+# ── SSL context sin verificación (mismo patrón usado para APIs públicas de solo lectura)
 def _ssl_ctx():
     return ssl._create_unverified_context()
 

@@ -1,5 +1,5 @@
 """
-stress_test_pae.py — Active load-test loop for PAE Control's scan pipeline.
+stress_test_pae.py — Active load-test loop for MiAppoderado's scan pipeline.
 
 Runs logic.procesar_scan() (the exact code path the scanner triggers on
 scan_screen._on_scan) against a COPY of the production DB, simulating

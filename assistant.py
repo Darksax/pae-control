@@ -87,12 +87,25 @@ acumulado histórico de todo el año.
 """
 
 
+# Tope de caracteres del reglamento que se manda en CADA consulta a Gemini.
+# El campo en Configuración no tiene límite (alguien puede pegar un PDF
+# completo ahí), pero reenviar un texto de cientos de miles de caracteres
+# como system_instruction en TODA pregunta agota el cupo gratuito de tokens
+# por minuto de un plan free en la primera consulta del día — no hace falta
+# mandar preguntas seguidas para que pase.
+MAX_REGLAMENTO_CHARS = 24_000
+
+
 def is_configured() -> bool:
     return bool(db.get_config("gemini_api_key", "").strip())
 
 
 def _system_prompt() -> str:
     reglamento = db.get_config("gemini_reglamento", "").strip()
+    reglamento_truncado = False
+    if len(reglamento) > MAX_REGLAMENTO_CHARS:
+        reglamento = reglamento[:MAX_REGLAMENTO_CHARS]
+        reglamento_truncado = True
     nombre_est = db.get_config("nombre_establecimiento", "el establecimiento")
     rol_usuario = session.rol() or "desconocido"
 
@@ -121,7 +134,15 @@ def _system_prompt() -> str:
         f"\n--- CONOCIMIENTO DE LA APP ---\n{APP_KNOWLEDGE}--- FIN CONOCIMIENTO DE LA APP ---",
     ]
     if reglamento:
-        partes.append(f"\n--- REGLAMENTO DEL LICEO ---\n{reglamento}\n--- FIN REGLAMENTO ---")
+        aviso_corte = (
+            "\n(NOTA: este es solo un extracto — el documento completo es "
+            "más largo. Si la pregunta parece requerir una sección no "
+            "incluida acá, dilo en vez de asumir que esto es todo el "
+            "reglamento.)" if reglamento_truncado else ""
+        )
+        partes.append(
+            f"\n--- REGLAMENTO DEL LICEO ---{aviso_corte}\n{reglamento}\n--- FIN REGLAMENTO ---"
+        )
     else:
         partes.append(
             "\n(Todavía no se cargó el texto del reglamento en Configuración. "
@@ -177,25 +198,25 @@ def ask(pregunta: str, historial: list[dict] | None = None) -> tuple[bool, str]:
     except urllib.error.HTTPError as e:
         if e.code == 429:
             body = e.read().decode("utf-8", errors="replace")
-            # La clave de Gemini es compartida entre todas las instalaciones
-            # (se sincroniza vía Supabase — ver sync.py), así que el cupo
-            # gratuito es UNO SOLO para todo el liceo, no por PC. Un 429 acá
-            # no implica que ESTE equipo mandó muchas consultas seguidas —
-            # puede ser otra instalación agotando el cupo del día completo.
-            # Gemini distingue el motivo en el body (PerMinute vs PerDay);
-            # sin diferenciarlo el mensaje anterior ("por minuto") mentía
-            # cuando en realidad era el cupo diario compartido.
+            # OJO: shared_config (sync de la clave de Gemini entre
+            # instalaciones, ver sync.py) requiere una migración manual de
+            # SQL en Supabase que puede no haberse corrido nunca — no asumir
+            # que la clave está compartida solo porque el código lo permite.
+            # Gemini distingue el motivo en el body (PerDay vs PerMinute):
+            # con una clave gratuita nueva, un 429 en la primera consulta
+            # suele ser cupo DIARIO ya gastado (o de tokens, si el
+            # reglamento cargado es largo), no ráfaga de pedidos.
             if "PerDay" in body or "per day" in body.lower():
                 return False, (
-                    "Se agotó el cupo diario gratuito de Gemini (es compartido "
-                    "entre todas las instalaciones del liceo). Vuelve a intentar "
-                    "mañana, o pide al administrador que revise el plan de Gemini "
-                    "en Configuración."
+                    "Se agotó el cupo diario gratuito de la clave de Gemini. "
+                    "Vuelve a intentar mañana, o revisa el plan/cupo de esa "
+                    "clave en Configuración → Asistente IA."
                 )
             return False, (
-                "Se alcanzó el límite de consultas del plan gratuito de Gemini "
-                "(la clave es compartida entre todas las instalaciones del "
-                "liceo). Espera un momento y vuelve a intentar."
+                "Se alcanzó el límite de consultas del plan gratuito de "
+                "Gemini para esta clave. Espera un momento y vuelve a "
+                "intentar; si vuelve a pasar seguido, revisa el cupo de la "
+                "clave en Configuración → Asistente IA."
             )
         if e.code in (401, 403):
             return False, "La clave de Gemini no es válida. Revísala en Configuración."

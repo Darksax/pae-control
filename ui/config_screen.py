@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, QTime
 from PyQt6.QtGui import QFont
 
+import assistant
 import db
 from ui.theme   import C, sound
 from ui.widgets import AButton, HDivider, SectionHeader, SavedIndicator
@@ -551,8 +552,15 @@ class ConfigScreen(QWidget):
                 QTextEdit:focus {{ border-color: {C.BLUE}; }}
             """)
             self._gemini_reglamento.textChanged.connect(self._on_field_changed)
+            self._gemini_reglamento.textChanged.connect(self._update_reglamento_counter)
+
+            self._lbl_reglamento_count = QLabel("")
+            self._lbl_reglamento_count.setStyleSheet(
+                f"font-size: 10.5px; color: {C.TEXT2}; background: transparent;"
+            )
             ai_lay.addWidget(lbl_reg)
             ai_lay.addWidget(self._gemini_reglamento)
+            ai_lay.addWidget(self._lbl_reglamento_count)
 
             root.addWidget(ai_card)
 
@@ -996,6 +1004,7 @@ class ConfigScreen(QWidget):
             self._gemini_reglamento.setPlainText(cfg.get("gemini_reglamento", ""))
             self._gemini_key.blockSignals(False)
             self._gemini_reglamento.blockSignals(False)
+            self._update_reglamento_counter()
 
         # ── Impresora Térmica
         self._inp_printer.blockSignals(True)
@@ -1015,6 +1024,24 @@ class ConfigScreen(QWidget):
     def _on_field_changed(self, *args):
         """Called on any field change — starts debounce timer."""
         self._debounce.start()
+
+    def _update_reglamento_counter(self):
+        n = len(self._gemini_reglamento.toPlainText())
+        cap = assistant.MAX_REGLAMENTO_CHARS
+        if n > cap:
+            self._lbl_reglamento_count.setStyleSheet(
+                f"font-size: 10.5px; color: {C.RED}; background: transparent;"
+            )
+            self._lbl_reglamento_count.setText(
+                f"{n:,} caracteres — supera el máximo que el Agente IA puede usar "
+                f"por consulta ({cap:,}); se recortará automáticamente, así que "
+                f"conviene dejar solo lo más relevante acá."
+            )
+        else:
+            self._lbl_reglamento_count.setStyleSheet(
+                f"font-size: 10.5px; color: {C.TEXT2}; background: transparent;"
+            )
+            self._lbl_reglamento_count.setText(f"{n:,} / {cap:,} caracteres")
 
     def _auto_save(self):
         """Called 1.2s after last change — saves silently."""

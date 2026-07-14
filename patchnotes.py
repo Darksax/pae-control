@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.6"
+VERSION       = "1.5.7"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -32,11 +32,21 @@ GITHUB_MANIFEST = (
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
     {
+        "version": "1.5.7",
+        "date":    "2026-07-13",
+        "title":   "Corrección: reglamento muy largo agotaba el cupo de Gemini en la primera pregunta",
+        "notes": [
+            "El texto del reglamento no tenía límite de tamaño y se reenviaba completo en cada pregunta al Agente IA — con un reglamento largo (se detectó uno de ~300.000 caracteres), eso solo ya alcanza para agotar el cupo gratuito de Gemini en la primera consulta del día, sin necesidad de preguntar varias veces seguidas",
+            "Ahora se manda como máximo un extracto de 24.000 caracteres por consulta",
+            "Configuración → Asistente IA muestra el largo del reglamento pegado y avisa si supera el máximo",
+        ],
+    },
+    {
         "version": "1.5.6",
         "date":    "2026-07-13",
         "title":   "Aviso más claro cuando se agota el cupo de Gemini",
         "notes": [
-            "El aviso de límite de consultas del Agente IA ahora distingue cupo diario agotado de ráfaga por minuto, y aclara que la clave de Gemini es compartida entre todas las instalaciones del liceo (no es un límite por PC)",
+            "El aviso de límite de consultas del Agente IA ahora distingue cupo diario agotado de ráfaga por minuto, y sugiere revisar el cupo de la clave en Configuración en vez de decir siempre \"por minuto\"",
         ],
     },
     {

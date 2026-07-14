@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.5"
+VERSION       = "1.5.6"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,14 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.6",
+        "date":    "2026-07-13",
+        "title":   "Aviso más claro cuando se agota el cupo de Gemini",
+        "notes": [
+            "El aviso de límite de consultas del Agente IA ahora distingue cupo diario agotado de ráfaga por minuto, y aclara que la clave de Gemini es compartida entre todas las instalaciones del liceo (no es un límite por PC)",
+        ],
+    },
     {
         "version": "1.5.5",
         "date":    "2026-07-13",

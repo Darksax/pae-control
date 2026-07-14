@@ -176,9 +176,26 @@ def ask(pregunta: str, historial: list[dict] | None = None) -> tuple[bool, str]:
         return True, texto
     except urllib.error.HTTPError as e:
         if e.code == 429:
+            body = e.read().decode("utf-8", errors="replace")
+            # La clave de Gemini es compartida entre todas las instalaciones
+            # (se sincroniza vía Supabase — ver sync.py), así que el cupo
+            # gratuito es UNO SOLO para todo el liceo, no por PC. Un 429 acá
+            # no implica que ESTE equipo mandó muchas consultas seguidas —
+            # puede ser otra instalación agotando el cupo del día completo.
+            # Gemini distingue el motivo en el body (PerMinute vs PerDay);
+            # sin diferenciarlo el mensaje anterior ("por minuto") mentía
+            # cuando en realidad era el cupo diario compartido.
+            if "PerDay" in body or "per day" in body.lower():
+                return False, (
+                    "Se agotó el cupo diario gratuito de Gemini (es compartido "
+                    "entre todas las instalaciones del liceo). Vuelve a intentar "
+                    "mañana, o pide al administrador que revise el plan de Gemini "
+                    "en Configuración."
+                )
             return False, (
-                "Se alcanzó el límite de consultas por minuto del plan gratuito. "
-                "Espera un momento y vuelve a intentar."
+                "Se alcanzó el límite de consultas del plan gratuito de Gemini "
+                "(la clave es compartida entre todas las instalaciones del "
+                "liceo). Espera un momento y vuelve a intentar."
             )
         if e.code in (401, 403):
             return False, "La clave de Gemini no es válida. Revísala en Configuración."

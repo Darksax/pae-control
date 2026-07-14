@@ -19,6 +19,7 @@ import faulthandler
 import logging
 import os
 import sys
+import threading
 import traceback
 
 LOG_DIR = os.path.join(os.path.expanduser("~"), "pae_control", "logs")
@@ -44,13 +45,29 @@ def log_exception(context: str) -> None:
     como un mensaje corto en la UI, sin traceback, imposible de diagnosticar
     a distancia.
     """
+    tb_str = traceback.format_exc()
     try:
         os.makedirs(LOG_DIR, exist_ok=True)
         with open(os.path.join(LOG_DIR, "errors.log"), "a", encoding="utf-8") as f:
             f.write(f"\n=== {datetime.datetime.now():%Y-%m-%d %H:%M:%S} — {context} ===\n")
-            traceback.print_exc(file=f)
+            f.write(tb_str)
     except Exception:
         pass
+
+    # Además del archivo local, sube automático a Supabase en background —
+    # así un error como este llega solo sin que el usuario tenga que
+    # acordarse de abrir "Reportar bug" cada vez que pasa. Silencioso si
+    # falla (misma red que probablemente causó el error original).
+    def _upload():
+        try:
+            import bug_reporter
+            bug_reporter.enviar_reporte(
+                f"Auto-diagnóstico: {context}", tipo="bug", traceback_str=tb_str
+            )
+        except Exception:
+            pass
+
+    threading.Thread(target=_upload, daemon=True, name="pae-auto-diag").start()
 
 
 def init() -> None:

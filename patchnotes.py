@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.13"
+VERSION       = "1.5.14"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,17 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.14",
+        "date":    "2026-07-13",
+        "title":   "Corrección crítica: foco atrapado en Escaneo, y clave de Supabase con caracteres inválidos",
+        "notes": [
+            "Corregido: al usar la barra de búsqueda manual (nombre/RUN) en Escaneo, el foco quedaba atrapado ahí para siempre — ni el watchdog de 5s, ni clicks, ni cambiar de pestaña lo devolvían, solo cerrar y reabrir la app. Mismo fix aplicado a la búsqueda de Inspectoría.",
+            "Supabase/Gemini: la URL y la clave ahora se validan como ASCII puro antes de guardarse — un copy-paste con una tilde o ñ de más ya no revienta 2 pantallas después con un error críptico, se rechaza al momento con un mensaje claro.",
+            "Los errores de conexión a Supabase ahora se suben automático a un registro para diagnóstico, sin depender de que alguien recuerde abrir 'Reportar bug'.",
+            "Esta actualización se puede instalar completa desde 'Buscar actualizaciones' en la barra superior — no hace falta reinstalar ni volver a configurar Supabase/Gemini.",
+        ],
+    },
     {
         "version": "1.5.13",
         "date":    "2026-07-13",

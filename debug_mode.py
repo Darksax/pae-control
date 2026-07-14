@@ -33,6 +33,26 @@ def is_debug() -> bool:
     return "--debug" in sys.argv or os.environ.get("PAE_DEBUG") == "1"
 
 
+def log_exception(context: str) -> None:
+    """
+    Escribe el traceback COMPLETO de la excepción actual a errors.log,
+    siempre — a diferencia de logger.exception(), que en modo normal (sin
+    --debug/PAE_DEBUG=1) no tiene ningún handler con archivo detrás y no
+    deja rastro. Pensado para excepciones que se atrapan localmente (un
+    try/except que solo muestra str(exc) al usuario) y por eso nunca llegan
+    al excepthook global de más arriba — sin esto, un error real solo se ve
+    como un mensaje corto en la UI, sin traceback, imposible de diagnosticar
+    a distancia.
+    """
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        with open(os.path.join(LOG_DIR, "errors.log"), "a", encoding="utf-8") as f:
+            f.write(f"\n=== {datetime.datetime.now():%Y-%m-%d %H:%M:%S} — {context} ===\n")
+            traceback.print_exc(file=f)
+    except Exception:
+        pass
+
+
 def init() -> None:
     """Llamar ANTES de importar PyQt6 (captura crashes durante el import)."""
     global _fault_fh

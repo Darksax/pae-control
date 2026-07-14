@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.10"
+VERSION       = "1.5.11"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,15 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.11",
+        "date":    "2026-07-13",
+        "title":   "El error de 'Probar conexión' de Supabase ahora sí queda registrado",
+        "notes": [
+            "El error de codificación ('ascii' codec...) reportado en Sincronizar Supabase seguía pasando pese al fix de 1.5.3 — se detectó que el traceback real nunca quedaba guardado en ningún lado (el logging solo escribe a archivo en modo debug, y este error se atrapa antes de llegar al log de crashes general), así que nunca se pudo diagnosticar la causa real",
+            "Ahora el traceback completo de 'Probar conexión' se guarda siempre en logs/errors.log, tenga o no modo debug activado, y 'Reportar bug' ya lo incluye — permite diagnosticar la causa real la próxima vez que pase",
+        ],
+    },
     {
         "version": "1.5.10",
         "date":    "2026-07-13",

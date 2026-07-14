@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Optional
 
 import db
-from debug_mode import logger
+from debug_mode import log_exception
 
 
 # ─────────────────────────────────────────────────────────
@@ -46,6 +46,7 @@ def get_client():
         client = create_client(url, key)
         return client, None
     except Exception as exc:
+        log_exception("sync.get_client()")
         return None, f"Error al conectar: {exc}"
 
 
@@ -58,7 +59,7 @@ def check_connection() -> tuple:
         client.table("students").select("run").limit(1).execute()
         return True, "Conexión exitosa con Supabase."
     except Exception as exc:
-        logger.exception("check_connection() falló")
+        log_exception("sync.check_connection()")
         return False, f"Sin respuesta del servidor: {exc}"
 
 

@@ -72,13 +72,15 @@ def apply_local_patches():
 
 # ─────────────────────── NETWORK ──────────────────────────────────────────
 
-def _fetch_json(url: str, timeout: int = 6) -> Optional[dict]:
-    try:
-        import urllib.request
-        with urllib.request.urlopen(url, timeout=timeout) as r:
-            return json.loads(r.read().decode("utf-8"))
-    except Exception:
-        return None
+def _fetch_json(url: str, timeout: int = 6) -> dict:
+    """Lanza la excepción de red/parseo tal cual — check_manifest() la deja
+    pasar para que check_for_updates_async() pueda distinguir "no hay
+    update" (None) de "no se pudo comprobar" (on_error), algo que antes se
+    perdía acá al tragarse cualquier excepción y devolver None en ambos
+    casos por igual."""
+    import urllib.request
+    with urllib.request.urlopen(url, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
 
 
 def _version_tuple(v: str):

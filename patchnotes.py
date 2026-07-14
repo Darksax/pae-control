@@ -34,11 +34,13 @@ PATCHNOTES = [
     {
         "version": "1.5.7",
         "date":    "2026-07-13",
-        "title":   "Corrección: reglamento muy largo agotaba el cupo de Gemini en la primera pregunta",
+        "title":   "Reglamento con tope, botón de actualizar y limpieza de menú",
         "notes": [
             "El texto del reglamento no tenía límite de tamaño y se reenviaba completo en cada pregunta al Agente IA — con un reglamento largo (se detectó uno de ~300.000 caracteres), eso solo ya alcanza para agotar el cupo gratuito de Gemini en la primera consulta del día, sin necesidad de preguntar varias veces seguidas",
             "Ahora se manda como máximo un extracto de 24.000 caracteres por consulta",
             "Configuración → Asistente IA muestra el largo del reglamento pegado y avisa si supera el máximo",
+            "Nuevo botón en la barra superior para buscar actualizaciones manualmente (antes solo se chequeaba solo al abrir, en silencio, sin forma de pedirlo de nuevo ni de saber si ya estabas al día)",
+            "Eliminadas del menú las secciones Menú JUNAEB, Registro masivo y Pases (legacy) — quedaban sin uso, duplicadas o abandonadas",
         ],
     },
     {

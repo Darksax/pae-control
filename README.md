@@ -45,7 +45,7 @@ El login es solo por PIN: eliges tu nombre de una lista y escribes el PIN, no ha
 | Rol           | Acceso                                                                 |
 |---------------|-------------------------------------------------------------------------|
 | `admin`       | Todo — incluye Configuración, Importar, Sync Supabase y gestión de usuarios. |
-| `pae`         | Escaneo, Registro masivo, Cupos por día, Menú JUNAEB, Estudiantes (solo ficha RSH), Reportes. |
+| `pae`         | Escaneo, Cupos por día, Estudiantes (solo ficha RSH), Reportes. |
 | `inspectoria` | Inspectoría (atrasos/pases/licencias), Estudiantes (nombre/curso/teléfono, sin RSH), Reportes. |
 
 ---
@@ -53,9 +53,7 @@ El login es solo por PIN: eliges tu nombre de una lista y escribes el PIN, no ha
 ## Funcionalidades principales
 
 - **Escaneo** — pantalla principal de operación: lee el RUN (cédula) y registra la asistencia a la comida activa según el horario configurado.
-- **Registro masivo** — marca asistencia de un curso completo de una vez.
-- **Cupos por día** — define cupos totales, excepciones (feriados, raciones frías) por fecha.
-- **Menú JUNAEB** — visor del menú semanal.
+- **Cupos por día** — define cupos totales, fecha de inicio del servicio, excepciones (feriados, raciones frías, suspensión de varios días de una vez) por fecha.
 - **Estudiantes** — ficha, estado (activo/lista de espera/inactivo), puntaje RSH.
 - **Inspectoría** — atrasos, pases, licencias médicas y suspensiones escolares.
 - **Reportes** — resumen semanal/mensual, top de inasistencias.

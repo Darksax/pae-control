@@ -45,11 +45,9 @@ comida anterior), FUERA DE HORARIO (gris, no hay comida activa ahora mismo \
 — no registra nada, evita que un escaneo de prueba consuma la comida real), \
 NO BENEFICIADO / NO ENCONTRADO / RUN INVÁLIDO (rojo), SIN SERVICIO HOY \
 (gris, día suspendido/feriado).
-- Registro masivo (pae, admin) — marca asistencia de un curso completo de \
-una vez, sin escanear uno por uno.
-- Cupos por día (pae, admin) — define el cupo total de raciones, y \
-excepciones por fecha (feriados sin servicio, días de ración fría).
-- Menú JUNAEB (pae, admin) — visor del menú semanal del programa.
+- Cupos por día (pae, admin) — define el cupo total de raciones, la fecha \
+de inicio del servicio, excepciones por fecha (feriados sin servicio, días \
+de ración fría, suspensión de varios días de una vez).
 - Estudiantes (pae, inspectoria, admin) — ficha de cada estudiante: estado \
 (activo / en lista de espera / inactivo). El rol pae solo ve el puntaje \
 RSH; inspectoria ve nombre/curso/teléfono pero NO el RSH.
@@ -68,8 +66,7 @@ impresora térmica.
 
 ROLES Y PERMISOS:
 - admin: acceso a todo.
-- pae: Escaneo, Registro masivo, Cupos por día, Menú JUNAEB, Estudiantes \
-(solo ficha RSH), Reportes.
+- pae: Escaneo, Cupos por día, Estudiantes (solo ficha RSH), Reportes.
 - inspectoria: Inspectoría (atrasos/pases/licencias), Estudiantes (sin \
 RSH), Reportes.
 

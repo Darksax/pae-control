@@ -22,11 +22,8 @@ from ui.widgets import NavItem, AnimatedStack, HDivider, AButton
 from ui.scan_screen         import ScanScreen
 from ui.students_screen     import StudentsScreen
 from ui.reports_screen      import ReportsScreen
-from ui.bulk_screen         import BulkScreen
 from ui.quotas_screen       import QuotasScreen
-from ui.suspensions_screen   import SuspensionsScreen
 from ui.inspectoria_screen   import InspectoriaScreen
-from ui.junaeb_screen       import JunaebScreen
 from ui.config_screen       import ConfigScreen
 from ui.import_screen       import ImportScreen
 from ui.sync_screen         import SyncScreen
@@ -39,17 +36,14 @@ import session
 
 
 # ── Nav config: (key, icon, label, screen_class, roles_permitidos)
-# pae         → Escaneo, Registro masivo, Cupos, JUNAEB, Estudiantes (solo RSH)
+# pae         → Escaneo, Cupos, Estudiantes (solo RSH)
 # inspectoria → Inspectoría (atrasos/pases/licencias), Estudiantes (nombre/curso/tel, sin RSH)
 # admin       → todo
 _ALL_NAV = [
     ("scan",        "scan-line",     "Escaneo",           ScanScreen,         ["pae", "admin"]),
     ("inspectoria", "shield-check",  "Inspectoría",       InspectoriaScreen,  ["inspectoria", "admin"]),
-    ("suspensions", "ticket",        "Pases (legacy)",    SuspensionsScreen,  ["admin"]),
     ("students",    "users",        "Estudiantes",       StudentsScreen,     ["pae", "inspectoria", "admin"]),
-    ("bulk",        "list-checks",   "Registro masivo",   BulkScreen,         ["pae", "admin"]),
     ("quotas",      "calendar-days", "Cupos por día",     QuotasScreen,       ["pae", "admin"]),
-    ("junaeb",      "utensils",      "Menú JUNAEB",       JunaebScreen,       ["pae", "admin"]),
     ("reports",     "chart-column",  "Reportes",          ReportsScreen,      ["admin", "pae", "inspectoria"]),
     ("import",      "upload",        "Importar",          ImportScreen,       ["admin"]),
     ("sync",        "refresh-cw",    "Sync Supabase",     SyncScreen,         ["admin"]),
@@ -408,6 +402,30 @@ class MainWindow(QMainWindow):
         """)
         self._btn_novedades.clicked.connect(self._open_novedades)
         lay.addWidget(self._btn_novedades)
+        lay.addSpacing(2)
+
+        # ── Botón "buscar actualizaciones ahora" ─────
+        # El chequeo automático (3s después de abrir) es silencioso si no
+        # encuentra nada — sin este botón no había forma de pedirle a la app
+        # que buscara de nuevo ni de saber si ya está en la última versión.
+        from ui.icons import load_icon
+        self._btn_check_update = AButton("", sound_type="click")
+        self._btn_check_update.setIcon(load_icon("refresh-cw", C.TEXT3, 15))
+        self._btn_check_update.setFixedSize(30, 30)
+        self._btn_check_update.setToolTip("Buscar actualizaciones ahora")
+        self._btn_check_update.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent;
+                border: 1px solid transparent;
+                border-radius: 7px;
+            }}
+            QPushButton:hover {{
+                background: {C.SURFACE2};
+                border-color: {C.BORDER};
+            }}
+        """)
+        self._btn_check_update.clicked.connect(self._manual_update_check)
+        lay.addWidget(self._btn_check_update)
         lay.addSpacing(4)
 
         lay.addWidget(_vsep())
@@ -701,6 +719,54 @@ class MainWindow(QMainWindow):
             )
         except Exception:
             pass
+
+    def _manual_update_check(self):
+        """Chequeo manual (botón de la toolbar) — siempre da feedback, a diferencia
+        del chequeo silencioso automático al abrir."""
+        from PyQt6.QtWidgets import QMessageBox
+        from ui.icons import load_icon
+
+        self._btn_check_update.setEnabled(False)
+        self._btn_check_update.setToolTip("Buscando…")
+
+        try:
+            import patchnotes as pn
+            from updater import check_for_updates_async
+
+            def _reset_btn():
+                self._btn_check_update.setEnabled(True)
+                self._btn_check_update.setToolTip("Buscar actualizaciones ahora")
+
+            def _on_found(manifest):
+                new_ver = manifest.get("version", "?")
+                QTimer.singleShot(0, _reset_btn)
+                QTimer.singleShot(0, lambda: self._notify_update(manifest, new_ver))
+
+            def _on_no_update():
+                QTimer.singleShot(0, _reset_btn)
+                QTimer.singleShot(0, lambda: QMessageBox.information(
+                    self, "Buscar actualizaciones",
+                    f"Ya tienes la última versión instalada (v{pn.VERSION})."
+                ))
+
+            def _on_error(msg):
+                QTimer.singleShot(0, _reset_btn)
+                QTimer.singleShot(0, lambda: QMessageBox.warning(
+                    self, "Buscar actualizaciones",
+                    f"No se pudo comprobar si hay actualizaciones.\n\n{msg}"
+                ))
+
+            check_for_updates_async(
+                manifest_url     = pn.GITHUB_MANIFEST,
+                current_version  = pn.VERSION,
+                on_update_found  = _on_found,
+                on_no_update     = _on_no_update,
+                on_error         = _on_error,
+            )
+        except Exception as exc:
+            self._btn_check_update.setEnabled(True)
+            self._btn_check_update.setToolTip("Buscar actualizaciones ahora")
+            QMessageBox.warning(self, "Buscar actualizaciones", str(exc))
 
     def _notify_update(self, manifest: dict, new_ver: str):
         """Update disponible: deja el botón como respaldo y además pregunta directo."""

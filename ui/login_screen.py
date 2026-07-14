@@ -72,7 +72,7 @@ class LoginScreen(QDialog):
     def _build_ui(self):
         self.setStyleSheet(f"QDialog {{ background: {_BG}; }}")
         root = QVBoxLayout(self)
-        root.setContentsMargins(36, 32, 36, 28)
+        root.setContentsMargins(36, 20, 36, 24)
         root.setSpacing(0)
 
         # ── Header ───────────────────────────────────────
@@ -111,7 +111,7 @@ class LoginScreen(QDialog):
         )
         hdr.addWidget(sub)
         root.addLayout(hdr)
-        root.addSpacing(20)
+        root.addSpacing(14)
 
         # ── Instrucción dinámica ──────────────────────
         self._inst = QLabel("Selecciona tu usuario")
@@ -171,10 +171,14 @@ class LoginScreen(QDialog):
         pin_lay.addLayout(dots_row)
         pin_lay.addSpacing(6)
 
-        # Error label
+        # Error label — border/background explícitos en none/transparent: sin
+        # esto, a veces se veía un rectángulo vacío ahí (el label hereda el
+        # borde del panel QFrame que lo contiene si no lo pisa explícito).
         self._err = QLabel("")
         self._err.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._err.setStyleSheet(f"font-size: 11px; color: {C.RED}; background: transparent;")
+        self._err.setStyleSheet(
+            f"font-size: 11px; color: {C.RED}; background: transparent; border: none;"
+        )
         self._err.setFixedHeight(18)
         pin_lay.addWidget(self._err)
         pin_lay.addSpacing(14)

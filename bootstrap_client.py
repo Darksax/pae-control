@@ -11,8 +11,29 @@ compartida vía sync.py (esa sync ni siquiera está activa todavía).
 
 import base64
 import json
+import ssl
 import urllib.error
 import urllib.request
+
+
+def _verified_ssl_ctx() -> ssl.SSLContext:
+    """
+    Contexto SSL con verificación real, apuntado explícito al CA bundle de
+    certifi en vez de confiar en el default de la plataforma. El default de
+    Python (ssl.create_default_context() sin más) depende de que el SO
+    tenga su propio store de certificados poblado — en instaladores de
+    python.org en macOS, y en algunos Windows, viene vacío hasta correr un
+    paso extra que casi nadie corre, y ahí falla con
+    CERTIFICATE_VERIFY_FAILED aunque el certificado del servidor sea
+    perfectamente válido. certifi sí trae su propio bundle empaquetado,
+    sin depender del SO — mismo motivo por el que httpx/requests (usados
+    por supabase-py en este proyecto) lo usan por defecto.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 
 def fetch_bootstrap(url: str, username: str, password: str, timeout: int = 10) -> tuple[bool, dict | str]:
@@ -21,11 +42,12 @@ def fetch_bootstrap(url: str, username: str, password: str, timeout: int = 10) -
     Retorna (True, config_dict) o (False, mensaje_de_error).
 
     A diferencia de whatsapp.py/assistant.py, acá NO se usa un contexto SSL
-    sin verificar: este request manda usuario/clave (Basic Auth) y recibe
+    SIN VERIFICAR: este request manda usuario/clave (Basic Auth) y recibe
     claves reales de Supabase/Gemini de vuelta — saltarse la verificación
     del certificado dejaría eso interceptable por cualquiera en el camino
-    (MITM). Se usa la verificación TLS por defecto de Python, y se exige
-    https:// explícito para no mandar Basic Auth en texto plano por error.
+    (MITM). Sí se usa un contexto con verificación real pero apuntado a
+    certifi (ver _verified_ssl_ctx), y se exige https:// explícito para no
+    mandar Basic Auth en texto plano por error.
     """
     url = url.strip()
     if not url:
@@ -40,7 +62,7 @@ def fetch_bootstrap(url: str, username: str, password: str, timeout: int = 10) -
         method="GET",
     )
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout, context=_verified_ssl_ctx()) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         return True, data
     except urllib.error.HTTPError as e:

@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.7"
+VERSION       = "1.5.8"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,15 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.8",
+        "date":    "2026-07-13",
+        "title":   "Corrección: la carga de config desde servidor fallaba por certificado en algunos PC",
+        "notes": [
+            "\"Cargar configuración desde servidor\" (nuevo en 1.5.7) podía fallar con un error de certificado en PC donde el almacén de certificados del sistema está vacío, aunque el certificado del servidor fuera válido — se detectó probando el deploy real",
+            "Ahora usa el CA bundle propio de certifi en vez de depender del store del sistema operativo, igual que ya hacían las librerías de Supabase",
+        ],
+    },
     {
         "version": "1.5.7",
         "date":    "2026-07-13",

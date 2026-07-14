@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.8"
+VERSION       = "1.5.9"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,16 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.9",
+        "date":    "2026-07-13",
+        "title":   "Corrección: el botón 'Buscar actualizaciones' no daba ningún resultado",
+        "notes": [
+            "El botón de buscar actualizaciones podía fallar en silencio (o sin mostrar el error real) por el mismo problema de certificado que ya se corrigió en la carga de config desde servidor (1.5.8) — updater.py usaba la verificación por defecto del sistema en vez del bundle propio de certifi",
+            "Corregido y verificado: ahora detecta correctamente tanto 'ya estás al día' como 'hay una versión nueva disponible'",
+            "URL del bootstrap precargada en Configuración, y mensaje específico cuando el servidor bloquea por intentos fallidos seguidos",
+        ],
+    },
     {
         "version": "1.5.8",
         "date":    "2026-07-13",

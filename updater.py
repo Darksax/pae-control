@@ -33,9 +33,27 @@ import os
 import sys
 import json
 import hashlib
+import ssl
 import threading
 from pathlib import Path
 from typing import Optional, Callable
+
+
+def _verified_ssl_ctx() -> ssl.SSLContext:
+    """
+    Mismo problema y mismo fix que bootstrap_client.py: el default de
+    ssl.create_default_context() depende de que el SO tenga su propio store
+    de certificados poblado, que en algunos Python de macOS/Windows viene
+    vacío — ahí CERTIFICATE_VERIFY_FAILED revienta aunque el certificado del
+    servidor (GitHub, en este caso) sea válido. Se detectó porque el botón
+    "Buscar actualizaciones" no daba ningún resultado visible en algunos
+    equipos. certifi trae su propio bundle empaquetado, sin depender del SO.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 
 # Directorio de parches: ~/pae_control/patches/
 # (mismo árbol que pae.db para facilitar backup)
@@ -79,7 +97,7 @@ def _fetch_json(url: str, timeout: int = 6) -> dict:
     perdía acá al tragarse cualquier excepción y devolver None en ambos
     casos por igual."""
     import urllib.request
-    with urllib.request.urlopen(url, timeout=timeout) as r:
+    with urllib.request.urlopen(url, timeout=timeout, context=_verified_ssl_ctx()) as r:
         return json.loads(r.read().decode("utf-8"))
 
 
@@ -143,7 +161,7 @@ def download_patch_files(manifest: dict) -> tuple:
         dest.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            with urllib.request.urlopen(url, timeout=15) as r:
+            with urllib.request.urlopen(url, timeout=15, context=_verified_ssl_ctx()) as r:
                 data = r.read()
         except Exception as e:
             errors.append(f"{rel_path}: error de red — {e}")

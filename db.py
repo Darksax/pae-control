@@ -138,6 +138,31 @@ def init_db():
     CREATE INDEX IF NOT EXISTS idx_namelog_run ON name_change_log(run);
     """)
 
+    # Seed opcional de credenciales para builds privados (Supabase, Gemini,
+    # etc.) — ver config_default.example.json. NUNCA se sube al repo (está
+    # en .gitignore); solo existe en un build armado a mano para uso propio,
+    # instalado desde fuera de GitHub. Corre ANTES que los defaults de abajo
+    # a propósito: para una clave que está en ambos (ej. nombre_establecimiento)
+    # el INSERT OR IGNORE del seed gana porque llega primero — si fuera al
+    # revés, el default genérico ya habría ocupado la fila y el valor real
+    # del seed se ignoraría en silencio.
+    import sys as _sys
+    import json as _json
+    if getattr(_sys, "frozen", False):
+        _seed_dir = os.path.dirname(_sys.executable)
+    else:
+        _seed_dir = os.path.dirname(os.path.abspath(__file__))
+    _seed_path = os.path.join(_seed_dir, "config_default.json")
+    if os.path.exists(_seed_path):
+        try:
+            with open(_seed_path, "r", encoding="utf-8") as f:
+                _seed = _json.load(f)
+            for k, v in _seed.items():
+                if v:
+                    c.execute("INSERT OR IGNORE INTO config VALUES (?,?)", (k, str(v)))
+        except Exception:
+            pass
+
     # Configuración por defecto
     defaults = {
         "max_strikes":             "3",

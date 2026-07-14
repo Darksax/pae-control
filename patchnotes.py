@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.12"
+VERSION       = "1.5.13"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,14 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.13",
+        "date":    "2026-07-13",
+        "title":   "Soporte para builds privados con config precargada",
+        "notes": [
+            "Nuevo: config_default.json opcional (ver config_default.example.json) para precargar Supabase/Gemini en un build armado localmente, sin depender del servidor de bootstrap ni de red al primer arranque — pensado para instaladores privados que no pasan por GitHub. Nunca se sube al repo (está en .gitignore).",
+        ],
+    },
     {
         "version": "1.5.12",
         "date":    "2026-07-13",

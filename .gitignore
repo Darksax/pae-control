@@ -21,6 +21,10 @@ __pycache__/
 # Script de push (contiene token — solo para uso local)
 PUSH_TO_GITHUB.command
 
+# Seed de config con credenciales reales para builds privados — NUNCA subir
+# (ver config_default.example.json y el README de esta sección)
+config_default.json
+
 # macOS
 .DS_Store
 .AppleDouble

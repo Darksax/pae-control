@@ -1,6 +1,6 @@
 ; ============================================================================
 ;  MiAppoderado_Setup.iss — Inno Setup Script
-;  MiAppoderado v1.5.12
+;  MiAppoderado v1.5.13
 ;  Liceo Bicentenario Héroes de la Concepción, Laja, Chile
 ;
 ;  Requiere: Inno Setup 6.x  (https://jrsoftware.org/isinfo.php)
@@ -8,7 +8,7 @@
 ; ============================================================================
 
 #define AppName      "MiAppoderado"
-#define AppVersion   "1.5.12"
+#define AppVersion   "1.5.13"
 #define AppPublisher "Marcelo Muñoz — Liceo Bicentenario Héroes de la Concepción"
 #define AppURL       "https://github.com/marcelomunoz/miappoderado"
 #define AppExeName   "MiAppoderado.exe"
@@ -97,8 +97,11 @@ Source: "{#AppIcon}"; DestDir: "{app}\assets"; Flags: ignoreversion
 ; Licencia (copia informativa en la carpeta de instalación)
 Source: "{#LicenseFile}"; DestDir: "{app}"; DestName: "LICENCIA.txt"; Flags: ignoreversion
 
-; Archivo de configuración inicial (si existe)
-; Source: "config_default.json"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+; Config inicial para builds privados (Supabase/Gemini) — ver
+; config_default.example.json. skipifsourcedoesntexist: el build público de
+; CI nunca tiene este archivo (está en .gitignore) y lo omite sin fallar;
+; solo se empaqueta en un build armado a mano localmente.
+Source: "config_default.json"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 ; Acceso directo en menú Inicio
@@ -154,7 +157,7 @@ begin
       '  • Control de atrasos e inasistencias (módulo Inspectoría)' + #13#10 +
       '  • Sincronización en la nube con Supabase' + #13#10 +
       '  • Generación de reportes y estadísticas' + #13#10 + #13#10 +
-      'Versión: 1.5.12' + #13#10 +
+      'Versión: 1.5.13' + #13#10 +
       'Desarrollado por: Marcelo Octavio Félix Muñoz Lizama' + #13#10 +
       'Institución: Liceo Bicentenario Héroes de la Concepción, RBD 14421' + #13#10 + #13#10 +
       'Requerimientos mínimos: Windows 10 (64-bit) versión 1809 o superior.' + #13#10 +

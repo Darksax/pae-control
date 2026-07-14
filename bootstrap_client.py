@@ -68,6 +68,12 @@ def fetch_bootstrap(url: str, username: str, password: str, timeout: int = 10) -
     except urllib.error.HTTPError as e:
         if e.code == 401:
             return False, "Usuario o clave incorrectos para este servidor."
+        if e.code == 429:
+            return False, (
+                "Demasiados intentos fallidos seguidos — este equipo quedó "
+                "bloqueado temporalmente por seguridad. Espera unos minutos "
+                "y vuelve a intentar."
+            )
         return False, f"Error del servidor ({e.code})."
     except urllib.error.URLError as e:
         return False, f"No se pudo conectar al servidor: {e.reason}"

@@ -25,6 +25,11 @@ import db
 from ui.theme   import C, sound
 from ui.widgets import AButton, HDivider, SectionHeader, SavedIndicator
 
+# Servidor de bootstrap del liceo — la URL es la misma para todos los PC
+# (no es secreta, solo usuario/clave lo son), así que viene precargada para
+# no tener que pedirla/tipearla cada vez.
+_BOOTSTRAP_URL_DEFAULT = "https://gordonzo.duckdns.org:8094/bootstrap"
+
 
 class MealRow(QFrame):
     """
@@ -218,6 +223,7 @@ class ConfigScreen(QWidget):
             return inp
 
         self._boot_url = _boot_field("https://tu-dominio.cl/miappoderado/bootstrap")
+        self._boot_url.setText(_BOOTSTRAP_URL_DEFAULT)
         self._boot_user = _boot_field("Usuario de este PC")
         self._boot_pass = _boot_field("Clave", echo_password=True)
         boot_lay.addWidget(self._boot_url)

@@ -18,6 +18,31 @@ import db
 from debug_mode import log_exception
 
 
+def _log_and_report(context: str) -> None:
+    """
+    log_exception() (debug_mode.py) escribe siempre a errors.log, pero ese
+    módulo se carga ANTES del sistema de parches en caliente y por eso
+    nunca se puede actualizar sin reinstalar — se mantiene mínimo a
+    propósito. La subida automática a Supabase vive acá en cambio (sync.py
+    SÍ es parcheable), para que este tipo de mejora se pueda distribuir vía
+    "Buscar actualizaciones" sin pedirle a nadie que reinstale ni vuelva a
+    teclear credenciales.
+    """
+    tb_str = log_exception(context)
+
+    def _upload():
+        try:
+            import bug_reporter
+            bug_reporter.enviar_reporte(
+                f"Auto-diagnóstico: {context}", tipo="bug", traceback_str=tb_str
+            )
+        except Exception:
+            pass
+
+    import threading
+    threading.Thread(target=_upload, daemon=True, name="pae-auto-diag").start()
+
+
 # ─────────────────────────────────────────────────────────
 #  CLIENT
 # ─────────────────────────────────────────────────────────
@@ -51,7 +76,7 @@ def get_client():
         client = create_client(url, key, options=SyncClientOptions(postgrest_client_timeout=15))
         return client, None
     except Exception as exc:
-        log_exception("sync.get_client()")
+        _log_and_report("sync.get_client()")
         return None, f"Error al conectar: {exc}"
 
 
@@ -64,7 +89,7 @@ def check_connection() -> tuple:
         client.table("students").select("run").limit(1).execute()
         return True, "Conexión exitosa con Supabase."
     except Exception as exc:
-        log_exception("sync.check_connection()")
+        _log_and_report("sync.check_connection()")
         return False, f"Sin respuesta del servidor: {exc}"
 
 

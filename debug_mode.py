@@ -19,7 +19,6 @@ import faulthandler
 import logging
 import os
 import sys
-import threading
 import traceback
 
 LOG_DIR = os.path.join(os.path.expanduser("~"), "pae_control", "logs")
@@ -34,7 +33,7 @@ def is_debug() -> bool:
     return "--debug" in sys.argv or os.environ.get("PAE_DEBUG") == "1"
 
 
-def log_exception(context: str) -> None:
+def log_exception(context: str) -> str:
     """
     Escribe el traceback COMPLETO de la excepción actual a errors.log,
     siempre — a diferencia de logger.exception(), que en modo normal (sin
@@ -44,6 +43,12 @@ def log_exception(context: str) -> None:
     al excepthook global de más arriba — sin esto, un error real solo se ve
     como un mensaje corto en la UI, sin traceback, imposible de diagnosticar
     a distancia.
+
+    Retorna el traceback como string — este módulo se carga ANTES que el
+    sistema de parches en caliente (updater.apply_local_patches), así que
+    nunca se puede actualizar sin reinstalar. Se mantiene mínimo a
+    propósito; cualquier lógica adicional (ej. subir el error a Supabase)
+    va del lado del llamador, en un módulo que sí sea parcheable.
     """
     tb_str = traceback.format_exc()
     try:
@@ -53,21 +58,7 @@ def log_exception(context: str) -> None:
             f.write(tb_str)
     except Exception:
         pass
-
-    # Además del archivo local, sube automático a Supabase en background —
-    # así un error como este llega solo sin que el usuario tenga que
-    # acordarse de abrir "Reportar bug" cada vez que pasa. Silencioso si
-    # falla (misma red que probablemente causó el error original).
-    def _upload():
-        try:
-            import bug_reporter
-            bug_reporter.enviar_reporte(
-                f"Auto-diagnóstico: {context}", tipo="bug", traceback_str=tb_str
-            )
-        except Exception:
-            pass
-
-    threading.Thread(target=_upload, daemon=True, name="pae-auto-diag").start()
+    return tb_str
 
 
 def init() -> None:

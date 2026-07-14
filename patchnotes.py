@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.14"
+VERSION       = "1.6.0"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,15 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.6.0",
+        "date":    "2026-07-13",
+        "title":   "Hotfix: botón de buscar actualizaciones pegado para siempre",
+        "notes": [
+            "'Buscar actualizaciones ahora' podía quedarse pegado en 'Buscando…' indefinidamente en redes donde la resolución DNS demora (típico de un firewall/proxy de colegio) — el timeout de la librería de red no cubría ese caso",
+            "Ahora hay un límite de 20s del lado de la app: si no hay respuesta a tiempo, cancela solo y avisa con un mensaje claro en vez de quedar pegado",
+        ],
+    },
     {
         "version": "1.5.14",
         "date":    "2026-07-13",

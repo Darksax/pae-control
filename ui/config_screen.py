@@ -20,6 +20,7 @@ from PyQt6.QtCore import Qt, QTimer, QTime
 from PyQt6.QtGui import QFont
 
 import assistant
+import bootstrap_client
 import db
 from ui.theme   import C, sound
 from ui.widgets import AButton, HDivider, SectionHeader, SavedIndicator
@@ -172,6 +173,74 @@ class ConfigScreen(QWidget):
         sub.setStyleSheet(f"font-size: 12px; color: {C.TEXT3}; background: transparent;")
         root.addWidget(sub)
         root.addSpacing(4)
+
+        # ── Cargar configuración desde servidor ───────
+        # Setup rápido para PCs nuevos: en vez de teclear a mano la URL/clave
+        # de Supabase y de Gemini, se bajan de un servidor propio (VPS del
+        # liceo) con usuario/clave por PC. Ver bootstrap_client.py — no tiene
+        # relación con manifest.json/GitHub (eso es código, público; esto es
+        # credenciales reales, por eso va a un servidor privado aparte).
+        boot_card = QFrame()
+        boot_card.setStyleSheet(f"""
+            QFrame {{
+                background: {C.SURFACE};
+                border: none;
+                border-radius: 16px;
+            }}
+        """)
+        boot_lay = QVBoxLayout(boot_card)
+        boot_lay.setContentsMargins(20, 18, 20, 18)
+        boot_lay.setSpacing(10)
+        boot_lay.addWidget(SectionHeader("Cargar configuración desde servidor"))
+
+        boot_hint = QLabel(
+            "Setup rápido para un PC nuevo: pide la URL y las credenciales "
+            "al administrador y carga de una vez Supabase, Gemini y el "
+            "reglamento — sin teclear cada dato a mano."
+        )
+        boot_hint.setWordWrap(True)
+        boot_hint.setStyleSheet(f"font-size: 11.5px; color: {C.TEXT3}; background: transparent;")
+        boot_lay.addWidget(boot_hint)
+
+        def _boot_field(placeholder: str, echo_password: bool = False) -> QLineEdit:
+            inp = QLineEdit()
+            inp.setPlaceholderText(placeholder)
+            if echo_password:
+                inp.setEchoMode(QLineEdit.EchoMode.Password)
+            inp.setStyleSheet(f"""
+                QLineEdit {{
+                    background: {C.SURFACE2}; color: {C.TEXT};
+                    border: 1.5px solid {C.BORDER2}; border-radius: 8px;
+                    padding: 8px 10px; font-size: 12.5px;
+                }}
+                QLineEdit:focus {{ border-color: {C.BLUE}; }}
+            """)
+            return inp
+
+        self._boot_url = _boot_field("https://tu-dominio.cl/miappoderado/bootstrap")
+        self._boot_user = _boot_field("Usuario de este PC")
+        self._boot_pass = _boot_field("Clave", echo_password=True)
+        boot_lay.addWidget(self._boot_url)
+
+        boot_row = QHBoxLayout()
+        boot_row.setSpacing(10)
+        boot_row.addWidget(self._boot_user, stretch=1)
+        boot_row.addWidget(self._boot_pass, stretch=1)
+        boot_lay.addLayout(boot_row)
+
+        self._boot_status = QLabel("")
+        self._boot_status.setWordWrap(True)
+        self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.TEXT3}; background: transparent;")
+
+        btn_boot = AButton("Conectar y cargar", sound_type="click")
+        btn_boot.clicked.connect(self._do_bootstrap_load)
+        boot_actions = QHBoxLayout()
+        boot_actions.addWidget(btn_boot)
+        boot_actions.addStretch(1)
+        boot_lay.addLayout(boot_actions)
+        boot_lay.addWidget(self._boot_status)
+
+        root.addWidget(boot_card)
 
         # ── General card ─────────────────────────────
         gen_card = QFrame()
@@ -1024,6 +1093,56 @@ class ConfigScreen(QWidget):
     def _on_field_changed(self, *args):
         """Called on any field change — starts debounce timer."""
         self._debounce.start()
+
+    # Claves que el servidor de bootstrap puede entregar — cualquier otra
+    # clave en la respuesta se ignora (defensivo ante un config.json con
+    # campos extra en el servidor).
+    _BOOTSTRAP_KEYS = (
+        "supabase_url", "supabase_key",
+        "gemini_api_key", "gemini_reglamento",
+        "nombre_establecimiento",
+    )
+
+    def _do_bootstrap_load(self):
+        url = self._boot_url.text().strip()
+        username = self._boot_user.text().strip()
+        password = self._boot_pass.text()
+
+        if not url or not username or not password:
+            self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.RED}; background: transparent;")
+            self._boot_status.setText("Completa URL, usuario y clave.")
+            return
+
+        self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.TEXT3}; background: transparent;")
+        self._boot_status.setText("Conectando…")
+
+        def _worker():
+            ok, result = bootstrap_client.fetch_bootstrap(url, username, password)
+            QTimer.singleShot(0, lambda: self._on_bootstrap_result(ok, result))
+
+        import threading
+        threading.Thread(target=_worker, daemon=True, name="pae-bootstrap").start()
+
+    def _on_bootstrap_result(self, ok: bool, result):
+        if not ok:
+            self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.RED}; background: transparent;")
+            self._boot_status.setText(str(result))
+            return
+
+        aplicadas = 0
+        for key in self._BOOTSTRAP_KEYS:
+            val = result.get(key)
+            if val:
+                db.set_config(key, val)
+                aplicadas += 1
+
+        self._boot_pass.clear()
+        self._load_config()   # refresca los campos de esta pantalla (Gemini, nombre)
+        self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.GREEN}; background: transparent;")
+        self._boot_status.setText(
+            f"Listo — {aplicadas} valores cargados. La clave de Supabase se "
+            f"verá en Sync Supabase la próxima vez que abras esa pantalla."
+        )
 
     def _update_reglamento_counter(self):
         n = len(self._gemini_reglamento.toPlainText())

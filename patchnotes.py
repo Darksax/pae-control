@@ -41,6 +41,7 @@ PATCHNOTES = [
             "Configuración → Asistente IA muestra el largo del reglamento pegado y avisa si supera el máximo",
             "Nuevo botón en la barra superior para buscar actualizaciones manualmente (antes solo se chequeaba solo al abrir, en silencio, sin forma de pedirlo de nuevo ni de saber si ya estabas al día)",
             "Eliminadas del menú las secciones Menú JUNAEB, Registro masivo y Pases (legacy) — quedaban sin uso, duplicadas o abandonadas",
+            "Configuración → nueva tarjeta 'Cargar configuración desde servidor': en un PC nuevo, con URL + usuario + clave de un servidor de bootstrap propio (VPS del liceo, ver miappoderado-bootstrap-server), carga Supabase, Gemini y el reglamento de una vez en vez de teclear cada dato a mano",
         ],
     },
     {

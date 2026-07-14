@@ -277,15 +277,41 @@ class SyncScreen(QWidget):
             except Exception:
                 self._lbl_last.setText(f"Último sync: {last}")
 
+    def _guardar_credenciales(self) -> bool:
+        """
+        Valida y guarda URL/clave de Supabase. Retorna False (sin guardar)
+        si algún campo tiene un caracter no-ASCII — una URL o un JWT con
+        una "ñ" (típico de un copy-paste que salió mal) no revienta acá,
+        sino varias pantallas después adentro de httpx, con un traceback
+        incomprensible ("'ascii' codec can't encode..."). Mejor cortarlo
+        acá con un mensaje claro.
+        """
+        url = self._inp_url.text().strip()
+        key = self._inp_key.text().strip()
+
+        for nombre, valor in (("URL", url), ("clave", key)):
+            if valor and not db.es_ascii_valido(valor):
+                self._set_dot(C.RED)
+                self._lbl_status.setText("Error de conexión")
+                self._log_append(
+                    f"✗  La {nombre} de Supabase tiene un caracter inválido "
+                    f"(¿se pegó mal? revisa que no tenga tildes o ñ) — no se guardó."
+                )
+                return False
+
+        db.set_config("supabase_url", url)
+        db.set_config("supabase_key", key)
+        return True
+
     def _save_credentials(self):
-        db.set_config("supabase_url", self._inp_url.text().strip())
-        db.set_config("supabase_key", self._inp_key.text().strip())
+        if not self._guardar_credenciales():
+            return
         self._saved_creds.show_saved("✓  Credenciales guardadas")
         sound.save()
 
     def _check_connection(self):
-        db.set_config("supabase_url", self._inp_url.text().strip())
-        db.set_config("supabase_key", self._inp_key.text().strip())
+        if not self._guardar_credenciales():
+            return
         self._set_dot(C.AMBER)
         self._lbl_status.setText("Verificando…")
         self._log_append("Verificando conexión con Supabase…")
@@ -313,8 +339,8 @@ class SyncScreen(QWidget):
         if self._worker and self._worker.isRunning():
             return
 
-        db.set_config("supabase_url", self._inp_url.text().strip())
-        db.set_config("supabase_key", self._inp_key.text().strip())
+        if not self._guardar_credenciales():
+            return
 
         mode = "Solo subir" if push_only else "Sincronización completa"
         self._log_append(f"\n── {mode} iniciada ──")

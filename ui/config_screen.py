@@ -1136,14 +1136,32 @@ class ConfigScreen(QWidget):
             return
 
         aplicadas = 0
+        rechazadas = []
         for key in self._BOOTSTRAP_KEYS:
             val = result.get(key)
-            if val:
-                db.set_config(key, val)
-                aplicadas += 1
+            if not val:
+                continue
+            if isinstance(val, str):
+                val = val.strip()
+            # supabase_url/supabase_key deben ser ASCII puro (URL/JWT) — un
+            # valor con un caracter raro no revienta acá, sino varias
+            # pantallas después adentro de httpx con un traceback
+            # incomprensible. Se rechaza directo en vez de guardarlo.
+            if key in ("supabase_url", "supabase_key") and not db.es_ascii_valido(str(val)):
+                rechazadas.append(key)
+                continue
+            db.set_config(key, val)
+            aplicadas += 1
 
         self._boot_pass.clear()
         self._load_config()   # refresca los campos de esta pantalla (Gemini, nombre)
+        if rechazadas:
+            self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.RED}; background: transparent;")
+            self._boot_status.setText(
+                f"{aplicadas} valores cargados, pero {', '.join(rechazadas)} tenían un "
+                f"caracter inválido y no se guardaron — revisa el config.json del servidor."
+            )
+            return
         self._boot_status.setStyleSheet(f"font-size: 11.5px; color: {C.GREEN}; background: transparent;")
         self._boot_status.setText(
             f"Listo — {aplicadas} valores cargados. La clave de Supabase se "

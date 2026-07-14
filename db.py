@@ -342,6 +342,17 @@ def set_config(key: str, value: str):
     conn.close()
 
 
+def es_ascii_valido(valor: str) -> bool:
+    """
+    True si `valor` es puro ASCII. Pensado para credenciales tipo URL/JWT
+    que DEBEN ser ASCII — un caracter como una "ñ" metido por un copy-paste
+    con problemas no rompe nada al guardarlo, pero revienta bien adentro de
+    httpx (headers deben ser ASCII) con un traceback incomprensible varias
+    pantallas después. Mejor rechazarlo al momento de guardar.
+    """
+    return all(ord(c) < 128 for c in valor)
+
+
 def get_all_config() -> dict:
     conn = get_conn()
     rows = conn.execute("SELECT key, value FROM config").fetchall()

@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.11"
+VERSION       = "1.5.12"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,15 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.12",
+        "date":    "2026-07-13",
+        "title":   "Corrección: 'Reportar bug' se quedaba pegado hasta 2 minutos",
+        "notes": [
+            "El cliente de Supabase usa 120 segundos de timeout por defecto — con cualquier problema de red (no una caída total, algo más sutil), tanto 'Probar conexión' como 'Reportar bug' se quedaban con la UI pegada hasta 2 minutos antes de mostrar cualquier error",
+            "Bajado a 15 segundos en ambos casos — falla rápido y muestra el error real en vez de parecer colgado",
+        ],
+    },
     {
         "version": "1.5.11",
         "date":    "2026-07-13",

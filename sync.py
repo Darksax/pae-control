@@ -29,6 +29,7 @@ def get_client():
     """
     try:
         from supabase import create_client  # type: ignore
+        from supabase.lib.client_options import SyncClientOptions
     except ImportError:
         return None, (
             "El paquete supabase-py no está instalado.\n"
@@ -43,7 +44,11 @@ def get_client():
         return None, "Ingresa la URL y la clave de Supabase en los campos de arriba."
 
     try:
-        client = create_client(url, key)
+        # El timeout default de supabase-py es 120s — con un problema de red
+        # (no una caída total, algo más sutil, como el firewall del colegio)
+        # la UI queda "pegada" hasta 2 minutos antes de mostrar cualquier
+        # error. 15s alcanza de sobra para una API que responde bien.
+        client = create_client(url, key, options=SyncClientOptions(postgrest_client_timeout=15))
         return client, None
     except Exception as exc:
         log_exception("sync.get_client()")

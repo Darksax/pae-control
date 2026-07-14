@@ -1,6 +1,6 @@
 ; ============================================================================
 ;  MiAppoderado_Setup.iss — Inno Setup Script
-;  MiAppoderado v1.5.11
+;  MiAppoderado v1.5.12
 ;  Liceo Bicentenario Héroes de la Concepción, Laja, Chile
 ;
 ;  Requiere: Inno Setup 6.x  (https://jrsoftware.org/isinfo.php)
@@ -8,7 +8,7 @@
 ; ============================================================================
 
 #define AppName      "MiAppoderado"
-#define AppVersion   "1.5.11"
+#define AppVersion   "1.5.12"
 #define AppPublisher "Marcelo Muñoz — Liceo Bicentenario Héroes de la Concepción"
 #define AppURL       "https://github.com/marcelomunoz/miappoderado"
 #define AppExeName   "MiAppoderado.exe"
@@ -154,7 +154,7 @@ begin
       '  • Control de atrasos e inasistencias (módulo Inspectoría)' + #13#10 +
       '  • Sincronización en la nube con Supabase' + #13#10 +
       '  • Generación de reportes y estadísticas' + #13#10 + #13#10 +
-      'Versión: 1.5.11' + #13#10 +
+      'Versión: 1.5.12' + #13#10 +
       'Desarrollado por: Marcelo Octavio Félix Muñoz Lizama' + #13#10 +
       'Institución: Liceo Bicentenario Héroes de la Concepción, RBD 14421' + #13#10 + #13#10 +
       'Requerimientos mínimos: Windows 10 (64-bit) versión 1809 o superior.' + #13#10 +

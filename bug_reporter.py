@@ -94,6 +94,7 @@ def _send_supabase(report: dict) -> tuple[bool, str]:
     """
     try:
         from supabase import create_client  # type: ignore
+        from supabase.lib.client_options import SyncClientOptions
     except ImportError:
         return False, "supabase-py no instalado"
 
@@ -107,7 +108,10 @@ def _send_supabase(report: dict) -> tuple[bool, str]:
         return False, "Sin credenciales Supabase — configúralas en Configuración"
 
     try:
-        client = create_client(url, key)
+        # Mismo motivo que sync.py: el default de supabase-py es 120s, y
+        # esto corre en background pero el diálogo se queda mostrando
+        # "Enviando..." todo ese tiempo si hay cualquier problema de red.
+        client = create_client(url, key, options=SyncClientOptions(postgrest_client_timeout=15))
         client.table("bug_reports").insert(report).execute()
         return True, "Reporte subido a Supabase"
     except Exception as e:

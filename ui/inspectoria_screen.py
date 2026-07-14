@@ -133,10 +133,17 @@ class _NameSearch(QFrame):
                 self.dismissed.emit()
                 return True
         # Cuando el popup se oculta sin que el usuario haya elegido un ítem,
-        # devolver el foco al campo de búsqueda para que no quede bloqueado.
+        # devolver el foco al campo — pero SOLO si el foco quedó en el aire.
+        # Si otro widget lo tomó (el usuario clickeó en otra parte), robarlo
+        # de vuelta atrapa el foco en esta barra en bucle (mismo bug que en
+        # la pantalla de Escaneo, corregido igual que allá).
         if obj is self._popup and event.type() == QEvent.Type.Hide:
             if not self._selecting:
-                QTimer.singleShot(0, self._field.setFocus)
+                def _refocus_if_orphaned():
+                    from PyQt6.QtWidgets import QApplication
+                    if QApplication.focusWidget() in (None, self._popup):
+                        self._field.setFocus()
+                QTimer.singleShot(0, _refocus_if_orphaned)
             return False
         return super().eventFilter(obj, event)
 

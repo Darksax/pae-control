@@ -724,7 +724,21 @@ class _NameSearchBar(QFrame):
     def _maybe_hide_popup(self):
         if not self._field.hasFocus():
             self._popup.hide()
-            QTimer.singleShot(0, self._field.setFocus)
+            # Recuperar el foco SOLO si quedó en el aire (p.ej. el popup Tool
+            # se cerró y no lo heredó nadie). Si otro widget lo tiene — el
+            # input de escaneo, el watchdog de 5s que lo devolvió, un click
+            # del usuario en otra parte — NO robarlo: hacerlo dejaba la
+            # pantalla atrapada en esta barra para siempre (el watchdog lo
+            # devolvía y esto se lo quitaba de nuevo, en bucle, hasta tener
+            # que cerrar la app).
+            self._refocus_field_if_orphaned()
+
+    def _refocus_field_if_orphaned(self):
+        def _check():
+            from PyQt6.QtWidgets import QApplication
+            if QApplication.focusWidget() in (None, self._popup):
+                self._field.setFocus()
+        QTimer.singleShot(0, _check)
 
     def _on_text_changed(self, text: str):
         if self._mode == "run":
@@ -801,10 +815,12 @@ class _NameSearchBar(QFrame):
             if event.key() == Qt.Key.Key_Escape:
                 self._popup.hide()
                 return True
-        # Popup ocultado sin selección → devolver foco al campo
+        # Popup ocultado sin selección → devolver foco al campo, pero solo
+        # si nadie más lo tomó (mismo guard que _maybe_hide_popup — sin él,
+        # este filtro también participaba del bucle roba-foco).
         if obj is self._popup and event.type() == QEvent.Type.Hide:
             if not self._selecting:
-                QTimer.singleShot(0, self._field.setFocus)
+                self._refocus_field_if_orphaned()
             return False
         return super().eventFilter(obj, event)
 

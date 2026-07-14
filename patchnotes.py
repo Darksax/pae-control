@@ -8,7 +8,7 @@ falta tocarlo a mano.
 """
 
 # ── Identidad ──────────────────────────────────────────────────────────────
-VERSION       = "1.5.9"
+VERSION       = "1.5.10"
 BUILD_DATE    = "2026-07-13"
 AUTHOR        = "Darksax (creador)"
 AUTHOR_TITLE  = "Laja · 2026"
@@ -31,6 +31,16 @@ GITHUB_MANIFEST = (
 #   title    : str   Título corto de la release
 #   notes    : list  Cambios en frases nominales (sin infinitivo, sin punto final)
 PATCHNOTES = [
+    {
+        "version": "1.5.10",
+        "date":    "2026-07-13",
+        "title":   "Empaquetado: certifi explícito, referencias a pantallas eliminadas limpiadas",
+        "notes": [
+            "certifi (usado por el fix de certificado de 1.5.8/1.5.9) ahora se agrega explícito al build de Windows y macOS en vez de depender de que PyInstaller lo detecte solo — el import está dentro de un try/except a nivel de función, más fácil que se le escape al análisis estático",
+            "Limpiadas referencias a bulk_screen/suspensions_screen/junaeb_screen (eliminadas en 1.5.7) que seguían en la lista de imports del build",
+            "También sirve para probar el flujo de 'Buscar actualizaciones ahora' end-to-end desde una instancia en 1.5.9",
+        ],
+    },
     {
         "version": "1.5.9",
         "date":    "2026-07-13",

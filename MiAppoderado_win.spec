@@ -30,6 +30,20 @@ try:
 except Exception:
     pass
 
+# certifi se importa dentro de un try/except a nivel de función en
+# bootstrap_client.py/updater.py (_verified_ssl_ctx) — PyInstaller detecta
+# imports normales por análisis estático, pero uno function-local dentro de
+# un try/except es más fácil que se le escape. Se agrega explícito acá en
+# vez de confiar en que el hook de certifi se dispare solo.
+try:
+    from PyInstaller.utils.hooks import collect_all
+    _cd, _cb, _ch = collect_all("certifi")
+    datas   += _cd
+    _supabase_bins   += _cb
+    _supabase_hidden += _ch
+except Exception:
+    pass
+
 # ── Hidden imports ─────────────────────────────────────────────────────────
 hidden_imports = [
     "PyQt6.QtCore", "PyQt6.QtGui", "PyQt6.QtWidgets",
@@ -37,11 +51,11 @@ hidden_imports = [
     "PyQt6.QtNetwork", "PyQt6.QtSvg", "PyQt6.sip",
     "ui.theme", "ui.widgets", "ui.icons",
     "ui.scan_screen", "ui.students_screen", "ui.reports_screen",
-    "ui.bulk_screen", "ui.quotas_screen", "ui.suspensions_screen",
-    "ui.junaeb_screen", "ui.config_screen", "ui.import_screen",
-    "ui.sync_screen", "ui.main_window",
-    "db", "utils", "logic", "sync",
-    "sqlite3", "csv", "json", "datetime",
+    "ui.quotas_screen", "ui.config_screen", "ui.import_screen",
+    "ui.sync_screen", "ui.main_window", "ui.inspectoria_screen",
+    "ui.assistant_widget",
+    "db", "utils", "logic", "sync", "assistant", "bootstrap_client", "updater",
+    "sqlite3", "csv", "json", "datetime", "certifi",
     "supabase", "supabase_auth", "supabase_functions",
     "postgrest", "storage3", "realtime",
     "httpx", "anyio", "httpcore", "sniffio",

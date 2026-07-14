@@ -3,10 +3,8 @@
 # Uso: pyinstaller MiAppoderado.spec --clean
 #      (o doble clic en BUILD_MAC.command)
 #
-# NOTA: QtWebEngineWidgets NO se incluye a propósito.
-# El módulo junaeb_screen.py detecta su ausencia y abre los links
-# en el navegador del sistema (Safari / Chrome) automáticamente.
-# Esto reduce el tamaño de ~3 GB a ~400 MB.
+# NOTA: QtWebEngineWidgets NO se incluye a propósito — reduce el tamaño de
+# ~3 GB a ~400 MB. Ningún módulo actual lo necesita.
 
 from pathlib import Path
 import sys
@@ -38,6 +36,19 @@ try:
 except Exception:
     pass
 
+# certifi se importa dentro de un try/except a nivel de función en
+# bootstrap_client.py/updater.py (_verified_ssl_ctx) — más fácil que se le
+# escape al análisis estático de PyInstaller que un import normal. Se
+# agrega explícito en vez de confiar en que su hook se dispare solo.
+try:
+    from PyInstaller.utils.hooks import collect_all
+    _cd, _cb, _ch = collect_all("certifi")
+    datas            += _cd
+    _supabase_bins   += _cb
+    _supabase_hidden += _ch
+except Exception:
+    pass
+
 # ── Hidden imports ─────────────────────────────────────────────────────────
 hidden_imports = [
     # PyQt6 — solo los módulos usados
@@ -46,13 +57,13 @@ hidden_imports = [
     # Pantallas
     "ui.theme", "ui.widgets", "ui.icons",
     "ui.scan_screen", "ui.students_screen", "ui.reports_screen",
-    "ui.bulk_screen", "ui.quotas_screen", "ui.suspensions_screen",
-    "ui.junaeb_screen", "ui.config_screen", "ui.import_screen",
-    "ui.sync_screen", "ui.main_window",
+    "ui.quotas_screen", "ui.config_screen", "ui.import_screen",
+    "ui.sync_screen", "ui.main_window", "ui.inspectoria_screen",
+    "ui.assistant_widget",
     # Módulos propios
-    "db", "utils", "logic", "sync",
+    "db", "utils", "logic", "sync", "assistant", "bootstrap_client", "updater",
     # Stdlib
-    "sqlite3", "csv", "json", "datetime",
+    "sqlite3", "csv", "json", "datetime", "certifi",
     # Supabase + deps (si está instalado) — gotrue fue renombrado a supabase_auth
     "supabase", "supabase_auth", "supabase_functions",
     "postgrest", "storage3", "realtime",

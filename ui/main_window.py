@@ -724,25 +724,54 @@ class MainWindow(QMainWindow):
         """Chequeo manual (botón de la toolbar) — siempre da feedback, a diferencia
         del chequeo silencioso automático al abrir."""
         from PyQt6.QtWidgets import QMessageBox
-        from ui.icons import load_icon
 
         self._btn_check_update.setEnabled(False)
         self._btn_check_update.setToolTip("Buscando…")
+
+        # El timeout de 6s que updater._fetch_json() le pasa a urlopen NO
+        # cubre la resolución DNS en todas las plataformas — en algunas
+        # redes (típico de un firewall/proxy de colegio) el lookup de
+        # github.com se puede colgar mucho más de 6s sin que urllib nunca
+        # levante una excepción, dejando el botón pegado en "Buscando…"
+        # para siempre (reportado en vivo: nunca termina). Este watchdog en
+        # el hilo de UI acota la espera visible pase lo que pase del otro
+        # lado, sin depender de que la librería de red respete su propio
+        # timeout.
+        resolved = {"done": False}
+
+        def _reset_btn():
+            self._btn_check_update.setEnabled(True)
+            self._btn_check_update.setToolTip("Buscar actualizaciones ahora")
+
+        def _watchdog():
+            if resolved["done"]:
+                return
+            resolved["done"] = True
+            _reset_btn()
+            QMessageBox.warning(
+                self, "Buscar actualizaciones",
+                "La comprobación tardó demasiado y se canceló — probable "
+                "problema de red (revisa el firewall/proxy si esto se repite)."
+            )
+
+        QTimer.singleShot(20000, _watchdog)
 
         try:
             import patchnotes as pn
             from updater import check_for_updates_async
 
-            def _reset_btn():
-                self._btn_check_update.setEnabled(True)
-                self._btn_check_update.setToolTip("Buscar actualizaciones ahora")
-
             def _on_found(manifest):
+                if resolved["done"]:
+                    return
+                resolved["done"] = True
                 new_ver = manifest.get("version", "?")
                 QTimer.singleShot(0, _reset_btn)
                 QTimer.singleShot(0, lambda: self._notify_update(manifest, new_ver))
 
             def _on_no_update():
+                if resolved["done"]:
+                    return
+                resolved["done"] = True
                 QTimer.singleShot(0, _reset_btn)
                 QTimer.singleShot(0, lambda: QMessageBox.information(
                     self, "Buscar actualizaciones",
@@ -750,6 +779,9 @@ class MainWindow(QMainWindow):
                 ))
 
             def _on_error(msg):
+                if resolved["done"]:
+                    return
+                resolved["done"] = True
                 QTimer.singleShot(0, _reset_btn)
                 QTimer.singleShot(0, lambda: QMessageBox.warning(
                     self, "Buscar actualizaciones",
@@ -764,6 +796,7 @@ class MainWindow(QMainWindow):
                 on_error         = _on_error,
             )
         except Exception as exc:
+            resolved["done"] = True
             self._btn_check_update.setEnabled(True)
             self._btn_check_update.setToolTip("Buscar actualizaciones ahora")
             QMessageBox.warning(self, "Buscar actualizaciones", str(exc))
